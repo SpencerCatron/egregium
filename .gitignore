@@ -1,0 +1,40 @@
+# Build output
+build/
+build-*/
+out/
+cmake-build-*/
+
+# CMake generated files (in case of an in-source build)
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Compiled objects and binaries
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Editors and IDEs
+.vscode/
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Polyscope / ImGui runtime files
+imgui.ini
+.polyscope.ini
+
+# Generated results
+output/
+screenshots/
+data/large/
+*.csv
