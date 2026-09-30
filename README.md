@@ -1,2 +1,17 @@
 # egregium
-C++ geometry processing library: Half-edge meshes, discrete differential geometry operators, algorithms, demos, and more.
+C++ library for geometry processing, discrete differential geometry, and more.
+
+> **Status:** This project is in very early development.
+
+## Features
+- [ ] Nothing yet
+
+## Planned Features
+- [ ] Half-edge mesh data structure
+- [ ] OBJ loading and mesh generators for canonical surfaces
+- [ ] contangent Laplacian and mass matrix
+- [ ] Gaussian and mean curvature. Convergence tests
+- [ ] Geodesic distance via heat method
+- [ ] Mean curvature flow
+- [ ] Minimal surfaces
+- [ ] Interactive viewer (Polyscope)
