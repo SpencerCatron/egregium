@@ -5,7 +5,7 @@
 
 namespace egregium{
 
-    
+
     constexpr int INVALID =-1;
 
     /*
@@ -47,6 +47,9 @@ namespace egregium{
         int eulerCharaceristic() const; //v-E+F, tological invariant
 
     private:
+    
+        void buildBoundaryHalfedges();
+        void assignVertexHalfedges();
 
         std::vector<int> next_;
         std::vector<int> twin_;
@@ -54,14 +57,9 @@ namespace egregium{
         std::vector<int> edge_;
         std::vector<int> face_;
 
+        //halfedge for given vertex, edge,face 
         std::vector<int> vertexHalfedge_;
         std::vector<int> edgeHalfedge_;
         std::vector<int> faceHalfedge_;
-
-        
-
-
-
-
     };
 }
