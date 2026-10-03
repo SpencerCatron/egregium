@@ -100,4 +100,68 @@ namespace egregium{
             vertexHalfedge_[tail_[i]]=i;
         }
     }
+
+
+    int SurfaceMesh::nVertices() const{
+        return static_cast<int>(vertexHalfedge_.size());
+    }
+    int SurfaceMesh::nEdges() const{
+        return static_cast<int>(edgeHalfedge_.size());
+    }
+    int SurfaceMesh::nFaces() const{
+        return static_cast<int>(faceHalfedge_.size());
+    }
+    int SurfaceMesh::nHalfedges() const{
+        return static_cast<int>(twin_.size());
+    }
+
+
+    int SurfaceMesh::next(int h) const{
+        return next_[h];
+    } 
+    int SurfaceMesh::twin(int h) const{
+        return twin_[h];
+    } 
+    int SurfaceMesh::tailVertex(int h) const{
+        return tail_[h];
+    }
+    int SurfaceMesh::headVertex(int h) const{
+        return tail_[next_[h]];
+    }
+    int SurfaceMesh::edge(int h) const{
+        return edge_[h];
+    }
+    int SurfaceMesh::face(int h) const{
+        return face_[h];
+    }
+  
+    int SurfaceMesh::vertexHalfedge(int v) const{
+        return vertexHalfedge_[v];
+    }
+    int SurfaceMesh::edgeHalfedge(int e) const{
+        return edgeHalfedge_[e];
+    }
+    int SurfaceMesh::faceHalfedge(int f) const{
+        return faceHalfedge_[f];
+    }
+
+    //derived
+    bool SurfaceMesh::isBoundaryHalfedge(int h) const{
+        return face_[h]==INVALID;
+    }
+    bool SurfaceMesh::isBoundaryVertex(int v) const{
+        return face_[vertexHalfedge_[v]]==INVALID;   
+    }
+    int SurfaceMesh::degree(int v) const{
+        int degree=0;
+        for(const int tail: tail_){
+            if(tail==v){
+                ++degree;
+            }
+        }
+        return degree;
+    }
+    int SurfaceMesh::eulerCharaceristic() const{
+        return SurfaceMesh::nVertices()-SurfaceMesh::nEdges()+SurfaceMesh::nFaces();
+    } //v-E+F, tological invariant
 }

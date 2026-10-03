@@ -23,6 +23,7 @@ namespace egregium{
         //element counts
         int nVertices() const;
         int nEdges() const;
+        int nFaces() const;
         int nHalfedges() const;
 
         //half-edge navigation
@@ -42,15 +43,12 @@ namespace egregium{
 
         //derived
         bool isBoundaryHalfedge(int h) const;
-        bool isBoundaryVertex(int e) const;
+        bool isBoundaryVertex(int v) const;
         int degree(int v) const; //number edges at vertex v
         int eulerCharaceristic() const; //v-E+F, tological invariant
 
     private:
     
-        void buildBoundaryHalfedges();
-        void assignVertexHalfedges();
-
         std::vector<int> next_;
         std::vector<int> twin_;
         std::vector<int> tail_;
