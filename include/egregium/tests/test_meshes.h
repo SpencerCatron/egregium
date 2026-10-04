@@ -5,7 +5,7 @@
 
 namespace test_meshes{
 
-    using Faces = std::vector<std::array<int, 3>>;
+using Faces = std::vector<std::array<int, 3>>;
 
 
 // v=4,E=6, F=4, chi=2, closed
@@ -73,7 +73,7 @@ inline Faces inconsistentOrientation() {
     return {{0, 1, 2}, {0, 1, 3}};
 }
 
-// Five-vertex Moebius strip (non-orientable; repeats a half-edge).
+// Five-vertex Moebius strip ( repeats a half-edge).
 inline Faces moebiusStrip() {
     return {{0, 1, 2}, {1, 2, 3}, {2, 3, 4}, {3, 4, 0}, {4, 0, 1}};
 }
