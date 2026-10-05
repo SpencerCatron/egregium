@@ -5,11 +5,34 @@
 #include<unordered_map>
 #include <utility>
 #include <algorithm>
+#include <stdexcept>
+#include <string>
 
 namespace egregium{
 
+    //check for negative indexing or repeated indexing on same face
+    void validateFaces(const Faces& faces){
+
+        for(size_t i =0; i<  faces.size(); ++i){
+            const auto& f=faces[i];
+            if(f[0]==f[1] || f[1]==f[2] || f[2]==f[0]){
+                throw std::invalid_argument("SurfaceMesh: invalid face at index"+ std::to_string(i) );
+            }
+            for(size_t j = 0; j<3; ++j){
+                const int& v=f[j];
+                if(v<0){
+                    throw std::invalid_argument("SurfaceMesh: negative vertex at index"+ std::to_string(i)+','+std::to_string(j));
+                }
+            }
+        }
+
+    }
+
+
 
     SurfaceMesh::SurfaceMesh(const std::vector<std::array<int, 3>>& faces){
+
+        validateFaces(faces);
 
         std::map< std::pair<int,int>, int > halfedgeIndex;
         int nEdges=0;

@@ -8,6 +8,8 @@ namespace egregium{
 
     constexpr int INVALID =-1;
 
+    using Faces = std::vector<std::array<int, 3>>;
+
     /*
     Half edge structure that stores connectivity.
 

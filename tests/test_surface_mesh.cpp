@@ -1,6 +1,6 @@
 #pragma once
 #include <egregium/mesh/surface_mesh.h>
-#include <egregium/tests/test_meshes.h>
+#include "test_meshes.h"
 #include <gtest/gtest.h>
 #include <string>
 #include <ostream>
@@ -68,5 +68,17 @@ INSTANTIATE_TEST_SUITE_P(
         MeshCase{"triangle",    test_meshes::singleTriangle(), 3, 3, 1 ,1},
         MeshCase{"square",      test_meshes::square(),      4, 5, 2 ,1},
         MeshCase{"fan",         test_meshes::fan(),         5, 8, 4 ,1},
-        MeshCase{"annulus",     test_meshes::annulus(),     8, 16, 8, 0}),
+        MeshCase{"annulus",     test_meshes::annulus(),     8, 16, 8, 0},
+        MeshCase{"twoTetrahedra", test_meshes::twoTetrahedra(), 8, 12, 8, 4}),
     [](const ::testing::TestParamInfo<MeshCase>& info) { return info.param.name; });
+
+
+TEST(SurfaceMeshInvalid, RejectsNegativeIndex) {
+    test_meshes::Faces faces = {{0, 1, 2}, {0, -1, 1}};
+    EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
+}
+
+TEST(SurfaceMeshInvalid, RejectsRepeatedIndexInFace) {
+    test_meshes::Faces faces = {{0, 1, 2}, {0, 0, 1}};
+    EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
+}
