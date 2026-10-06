@@ -85,4 +85,13 @@ inline Faces moebiusStrip() {
     return {{0, 1, 2}, {1, 2, 3}, {2, 3, 4}, {3, 4, 0}, {4, 0, 1}};
 }
 
+// Two tetrahedra sharing only vertex 0 (non-manifold interior vertex).
+// No duplicate half-edges and no boundary, so only a vertex-rotation check catches it.
+inline Faces tetrahedraSharingVertex() {
+    return {{0, 1, 2}, {0, 3, 1}, {0, 2, 3}, {1, 3, 2},
+            {0, 4, 5}, {0, 6, 4}, {0, 5, 6}, {4, 6, 5}};
+}
+
+
+
 }

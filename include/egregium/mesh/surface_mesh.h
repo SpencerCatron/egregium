@@ -61,5 +61,8 @@ namespace egregium{
         std::vector<int> vertexHalfedge_;
         std::vector<int> edgeHalfedge_;
         std::vector<int> faceHalfedge_;
+
+        void checkNonManifoldInteriorVertex(int v) const;
+        int rotateHalfedge(int h) const; //rotate outgoing halfedge around a specific vertex
     };
 }

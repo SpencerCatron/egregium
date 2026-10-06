@@ -28,6 +28,27 @@ namespace egregium{
 
     }
 
+    int SurfaceMesh::rotateHalfedge(int h) const{
+        return next(twin(h));
+    }
+    void SurfaceMesh::checkNonManifoldInteriorVertex(int v) const{
+       
+        int nEdges = degree(v); 
+        int count = 1;
+        int h = vertexHalfedge(v);
+
+        int curH = rotateHalfedge(h);
+
+        while(curH!= h){
+            curH=rotateHalfedge(curH);
+            ++count;
+        }
+
+        if(count!= nEdges){
+            throw std::invalid_argument("SurfaceMesh: non manifold interior vertex at" + std::to_string(v));
+        }
+    }
+
 
 
     SurfaceMesh::SurfaceMesh(const std::vector<std::array<int, 3>>& faces){
@@ -64,7 +85,13 @@ namespace egregium{
                 const int head =  f[(j+1)%3];
                 const int heIdx = 3*i+j; // indexing for the current halfedge
 
-                halfedgeIndex[{tail, head}]=heIdx;
+                auto [it, inserted] = halfedgeIndex.try_emplace({tail, head}, heIdx);
+
+                //handle bad orientation or non manifold behavior 
+                if(!inserted){
+                    const auto& h = it->first;
+                    throw std::invalid_argument("SurfaceMesh: duplicate half-edge"+std::to_string(h.first)+','+std::to_string(h.second));
+                }
 
                 next_[heIdx]=3*i+(j+1)%3;
                 tail_[heIdx]=tail;
@@ -99,7 +126,11 @@ namespace egregium{
                 const int twinIdx=originalSize+boundaryCount;
 
                 twin_[i]=twinIdx;
-                heFromHead[tail_[next_[i]]]=i;
+                //heFromHead[tail_[next_[i]]]=i;
+                auto [it, inserted] = heFromHead.try_emplace(tail_[next_[i]], i);
+                if(!inserted){
+                    throw std::invalid_argument("SurfaceMesh: invalid input");
+                }
 
                 face_.push_back(INVALID);
                 twin_.push_back(i);
@@ -121,6 +152,12 @@ namespace egregium{
         const int nHalfedges= static_cast<int>(tail_.size());
         for( int i =0; i< nHalfedges; ++i){
             vertexHalfedge_[tail_[i]]=i;
+        }
+
+
+        //check non manifold interior vertices
+        for(int i=0; i<nVertices(); ++i){
+            checkNonManifoldInteriorVertex(i);
         }
     }
 

@@ -82,3 +82,27 @@ TEST(SurfaceMeshInvalid, RejectsRepeatedIndexInFace) {
     test_meshes::Faces faces = {{0, 1, 2}, {0, 0, 1}};
     EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
 }
+TEST(SurfaceMeshInvalid, RejectsInconsistentOrientation) {
+    auto faces = test_meshes::inconsistentOrientation();
+    EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
+}
+
+TEST(SurfaceMeshInvalid, RejectsNonManifoldEdge) {
+    auto faces = test_meshes::nonManifoldEdge();
+    EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
+}
+
+TEST(SurfaceMeshInvalid, RejectsMoebiusStrip) {
+    auto faces = test_meshes::moebiusStrip();
+    EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
+}
+
+TEST(SurfaceMeshInvalid, RejectsNonManifoldBoundaryVertex) {
+    auto faces = test_meshes::bowtie();
+    EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
+}
+
+TEST(SurfaceMeshInvalid, RejectsNonManifoldInteriorVertex) {
+    auto faces = test_meshes::tetrahedraSharingVertex();
+    EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
+}
