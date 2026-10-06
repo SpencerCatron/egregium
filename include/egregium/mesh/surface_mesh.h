@@ -6,63 +6,70 @@
 namespace egregium{
 
 
-    constexpr int INVALID =-1;
+constexpr int INVALID =-1; // placeholder for no input or boundary data.
 
-    using Faces = std::vector<std::array<int, 3>>;
+using Faces = std::vector<std::array<int, 3>>;
 
-    /*
-    Half edge structure that stores connectivity.
+/*
+Half edge structure that stores connectivity.
 
-    each edge has two half edges pointing in opposite directions. 
-    */
-    class SurfaceMesh{
+each edge has two half edges pointing in opposite directions. 
+*/
+class SurfaceMesh{
 
-    public:
-        
-        //build structure from list of triangles. each triangle has 3 vertices listed in counterclockwise order
-        explicit SurfaceMesh(const std::vector<std::array<int, 3>>& faces);
-
-        //element counts
-        int nVertices() const;
-        int nEdges() const;
-        int nFaces() const;
-        int nHalfedges() const;
-
-        //half-edge navigation
-        int next(int h) const; //next half edge on same face, counterclockwise
-        int twin(int h) const; // other half edge along a given edge
-        int tailVertex(int h) const; //tail vertex of half edge
-        int headVertex(int h) const; //head of half edge
-        int edge(int h) const; //edge given half edge belongs to
-        int face(int h) const; // face half edge belongs to (face on leftside of arrow)
-
-
-        //elements to half edge
-        //choice tbd
-        int vertexHalfedge(int v) const;
-        int edgeHalfedge(int e) const;
-        int faceHalfedge(int f) const;
-
-        //derived
-        bool isBoundaryHalfedge(int h) const;
-        bool isBoundaryVertex(int v) const;
-        int degree(int v) const; //number edges at vertex v
-        int eulerCharaceristic() const; //v-E+F, tological invariant
-
-    private:
+public:
     
-        std::vector<int> next_;
-        std::vector<int> twin_;
-        std::vector<int> tail_;
-        std::vector<int> edge_;
-        std::vector<int> face_;
+    //build structure from list of triangles. each triangle has 3 vertices listed in counterclockwise order
+    explicit SurfaceMesh(const std::vector<std::array<int, 3>>& faces);
 
-        //halfedge for given vertex, edge,face 
-        std::vector<int> vertexHalfedge_;
-        std::vector<int> edgeHalfedge_;
-        std::vector<int> faceHalfedge_;
+    //element counts
+    
+    int nVertices() const;
+    int nEdges() const;
+    int nFaces() const;
+    int nHalfedges() const;
 
-        void checkNonManifoldInteriorVertex(int v) const;
-        int rotateHalfedge(int h) const; //rotate outgoing halfedge around a specific vertex
-    };
+    //half-edge navigation
+
+    int next(int h) const; //next half edge on same face, counterclockwise
+    int twin(int h) const; // other half edge along a given edge
+    int tailVertex(int h) const; //tail vertex of half edge
+    int headVertex(int h) const; //head of half edge
+    int edge(int h) const; //edge given half edge belongs to
+    int face(int h) const; // face half edge belongs to (face on leftside of arrow)
+
+
+    //elements to half edge
+
+    int vertexHalfedge(int v) const;
+    int edgeHalfedge(int e) const;
+    int faceHalfedge(int f) const;
+
+    //other functions
+
+    bool isBoundaryHalfedge(int h) const;
+    bool isBoundaryVertex(int v) const;
+    int degree(int v) const; //number edges at vertex v
+    int eulerCharaceristic() const; //v-E+F, tological invariant
+
+private:
+
+    std::vector<int> next_;
+    std::vector<int> twin_;
+    std::vector<int> tail_;
+    std::vector<int> edge_;
+    std::vector<int> face_;
+
+    //halfedge for given vertex, edge,face 
+
+    std::vector<int> vertexHalfedge_;
+    std::vector<int> edgeHalfedge_;
+    std::vector<int> faceHalfedge_;
+
+    void checkNonManifoldInteriorVertex(int v) const;//check for non manifold behavior on interior vertex
+    int rotateHalfedge(int h) const; //rotate outgoing halfedge around a specific vertex
+
+    int buildInteriorHalfedges(Faces faces); //build structure for interior half edges
+    void buildBoundaryHalfedges(Faces faces, int maxVertexIndex); //build structure for boundary
+};
 }
