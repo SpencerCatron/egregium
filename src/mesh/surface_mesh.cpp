@@ -1,4 +1,3 @@
-
 #include <egregium/mesh/surface_mesh.h>
 
 #include <map>
@@ -9,7 +8,7 @@
 #include <string>
 
 namespace egregium{
-
+namespace{
 //check for negative indexing or repeated indexing on same face
 void validateFaces(const Faces& faces){
 
@@ -26,24 +25,19 @@ void validateFaces(const Faces& faces){
         }
     }
 }
+}
 
 int SurfaceMesh::rotateHalfedge(int h) const{
     return next(twin(h));
 }
 void SurfaceMesh::checkNonManifoldInteriorVertex(int v) const{
     
-    int nEdges = degree(v); 
-    int count = 1;
-    int h = vertexHalfedge(v);
-
-    int curH = rotateHalfedge(h);
-
-    while(curH!= h){
-        curH=rotateHalfedge(curH);
-        ++count;
+    std::vector<int> outgoing(nVertices(), 0);
+    for (int h = 0; h < nHalfedges(); ++h) {
+        ++outgoing[tailVertex(h)];
     }
 
-    if(count!= nEdges){
+    if(degree(v)!= outgoing[v]){
         throw std::invalid_argument("SurfaceMesh: non manifold interior vertex at" + std::to_string(v));
     }
 }
@@ -219,15 +213,16 @@ bool SurfaceMesh::isBoundaryVertex(int v) const{
     return face_[vertexHalfedge_[v]]==INVALID;   
 }
 int SurfaceMesh::degree(int v) const{
-    int degree=0;
-    for(const int tail: tail_){
-        if(tail==v){
-            ++degree;
-        }
+    int h = vertexHalfedge(v);
+    int degreeCount = 1;
+    int curH= rotateHalfedge(h);
+    while(curH!=h){
+        curH=rotateHalfedge(curH);
+        ++degreeCount;
     }
-    return degree;
+    return degreeCount;
 }
-int SurfaceMesh::eulerCharaceristic() const{
+int SurfaceMesh::eulerCharacteristic() const{
     return SurfaceMesh::nVertices()-SurfaceMesh::nEdges()+SurfaceMesh::nFaces();
 }
 }

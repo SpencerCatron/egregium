@@ -1,4 +1,3 @@
-#pragma once
 #include <egregium/mesh/surface_mesh.h>
 #include "test_meshes.h"
 #include <gtest/gtest.h>
@@ -29,7 +28,7 @@ TEST_P(ValidMeshTest, counts ){
 TEST_P(ValidMeshTest, eulerCharcteristic ){
     const MeshCase& c = GetParam();
     SurfaceMesh mesh(c.faces);
-    EXPECT_EQ(mesh.eulerCharaceristic(), c.chi);
+    EXPECT_EQ(mesh.eulerCharacteristic(), c.chi);
 }
 TEST_P(ValidMeshTest, TwinOfTwinIsSelf) {
     SurfaceMesh mesh(GetParam().faces);

@@ -50,7 +50,7 @@ public:
     bool isBoundaryHalfedge(int h) const;
     bool isBoundaryVertex(int v) const;
     int degree(int v) const; //number edges at vertex v
-    int eulerCharaceristic() const; //v-E+F, tological invariant
+    int eulerCharacteristic() const; //v-E+F, tological invariant
 
 private:
 
