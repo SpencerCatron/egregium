@@ -15,10 +15,10 @@ Half edge structure that stores connectivity.
 each edge has two half edges pointing in opposite directions.
 */
 class SurfaceMesh {
-   public:
+ public:
     // build structure from list of triangles. each triangle has 3 vertices listed in
     // counterclockwise order
-    explicit SurfaceMesh(const std::vector<std::array<int, 3>>& faces);
+    explicit SurfaceMesh(const Faces& faces);
 
     // element counts
 
@@ -49,7 +49,7 @@ class SurfaceMesh {
     int degree(int v) const;          // number edges at vertex v
     int eulerCharacteristic() const;  // v-E+F, tological invariant
 
-   private:
+ private:
     std::vector<int> next_;
     std::vector<int> twin_;
     std::vector<int> tail_;
@@ -64,8 +64,9 @@ class SurfaceMesh {
     void checkNonManifoldVertices() const;  // check for non manifold behavior on interior vertex
     int rotateHalfedge(int h) const;        // rotate outgoing halfedge around a specific vertex
 
-    int buildInteriorHalfedges(Faces faces);  // build structure for interior half edges
-    void buildBoundaryHalfedges(Faces faces, int maxVertexIndex);  // build structure for boundary
+    int buildInteriorHalfedges(const Faces& faces);  // build structure for interior half edges
+    void buildBoundaryHalfedges(const Faces& faces,
+                                int maxVertexIndex);  // build structure for boundary
     void checkUnusedVertices() const;
 };
 }  // namespace egregium

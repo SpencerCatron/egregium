@@ -4,3 +4,4 @@ ColumnLimit: 100
 MaxEmptyLinesToKeep: 1
 AllowShortFunctionsOnASingleLine: Inline
 SeparateDefinitionBlocks: Always
+AccessModifierOffset: -3

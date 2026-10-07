@@ -49,7 +49,7 @@ void SurfaceMesh::checkNonManifoldVertices() const {
     }
 }
 
-int SurfaceMesh::buildInteriorHalfedges(Faces faces) {
+int SurfaceMesh::buildInteriorHalfedges(const Faces& faces) {
     std::map<std::pair<int, int>, int> halfedgeIndex;
     int nEdges = 0;
     const int nFaces = static_cast<int>(faces.size());
@@ -120,7 +120,7 @@ void SurfaceMesh::checkUnusedVertices() const {
     }
 }
 
-void SurfaceMesh::buildBoundaryHalfedges(Faces faces, int maxVertexIndex) {
+void SurfaceMesh::buildBoundaryHalfedges(const Faces& faces, int maxVertexIndex) {
     int boundaryCount = 0;
     std::unordered_map<int, int> heFromHead;
     const int nFaces = static_cast<int>(faces.size());
@@ -148,8 +148,7 @@ void SurfaceMesh::buildBoundaryHalfedges(Faces faces, int maxVertexIndex) {
     }
     for (const auto& [head, halfedgeIdx] : heFromHead) {
         const int twinIdx = twin_[halfedgeIdx];
-        // todo: check for non manifold input. will throw error here
-        next_[twinIdx] = twin_[heFromHead[tail_[halfedgeIdx]]];
+        next_[twinIdx] = twin_[heFromHead.at(tail_[halfedgeIdx])];
     }
 
     // write vertexHalfedge_
@@ -160,7 +159,7 @@ void SurfaceMesh::buildBoundaryHalfedges(Faces faces, int maxVertexIndex) {
     }
 }
 
-SurfaceMesh::SurfaceMesh(const std::vector<std::array<int, 3>>& faces) {
+SurfaceMesh::SurfaceMesh(const Faces& faces) {
     validateFaces(faces);
     int maxVertexIndex = buildInteriorHalfedges(faces);
     buildBoundaryHalfedges(faces, maxVertexIndex);
