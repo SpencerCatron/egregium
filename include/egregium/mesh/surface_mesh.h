@@ -71,5 +71,6 @@ private:
 
     int buildInteriorHalfedges(Faces faces); //build structure for interior half edges
     void buildBoundaryHalfedges(Faces faces, int maxVertexIndex); //build structure for boundary
+    void checkUnusedVertices()const;
 };
 }

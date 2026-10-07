@@ -12,6 +12,10 @@ namespace{
 //check for negative indexing or repeated indexing on same face
 void validateFaces(const Faces& faces){
 
+    if(faces.size()==0){
+        throw std::invalid_argument("SurFaceMesh: input must be non-empty");
+    }
+
     for(size_t i =0; i<  faces.size(); ++i){
         const auto& f=faces[i];
         if(f[0]==f[1] || f[1]==f[2] || f[2]==f[0]){
@@ -106,6 +110,15 @@ int SurfaceMesh::buildInteriorHalfedges(Faces faces){
 
 }
 
+
+void SurfaceMesh::checkUnusedVertices() const{
+    for(int i=0; i<nVertices(); ++i){
+        if(vertexHalfedge(i)== INVALID){
+            throw std::invalid_argument("SurfaceMesh: invalid argument, unnused vertex at:" + std::to_string(i));
+        }
+    }
+}
+
 void SurfaceMesh::buildBoundaryHalfedges(Faces faces, int maxVertexIndex){
     int boundaryCount = 0;
     std::unordered_map<int, int> heFromHead;
@@ -155,10 +168,15 @@ SurfaceMesh::SurfaceMesh(const std::vector<std::array<int, 3>>& faces){
     int maxVertexIndex = buildInteriorHalfedges(faces);
     buildBoundaryHalfedges(faces, maxVertexIndex);
 
+
+    //check for unnused vertices
+    checkUnusedVertices();
+
     //check non manifold interior vertices
     for(int i=0; i<nVertices(); ++i){
         checkNonManifoldInteriorVertex(i);
     }
+
 }
 
 

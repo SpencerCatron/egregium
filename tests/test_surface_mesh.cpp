@@ -105,3 +105,15 @@ TEST(SurfaceMeshInvalid, RejectsNonManifoldInteriorVertex) {
     auto faces = test_meshes::tetrahedraSharingVertex();
     EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
 }
+
+
+TEST(SurfaceMeshInvalid, RejectsEmptyInput) {
+    test_meshes::Faces faces = {};
+    EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
+}
+
+TEST(SurfaceMeshInvalid, RejectsUnusedVertex) {
+    test_meshes::Faces faces = {{0, 1, 3}};   // vertex 2 is never used
+    EXPECT_THROW({ SurfaceMesh mesh(faces); }, std::invalid_argument);
+}
+
