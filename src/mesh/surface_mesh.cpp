@@ -9,22 +9,22 @@
 
 namespace egregium {
 namespace {
-// check for negative indexing or repeated indexing on same face
+// Check for negative indexing or repeated indexing on same face.
 void validateFaces(const Faces& faces) {
-    if (faces.size() == 0) {
-        throw std::invalid_argument("SurFaceMesh: input must be non-empty");
+    if (faces.empty()) {
+        throw std::invalid_argument("SurfaceMesh: input must be non-empty");
     }
 
     for (size_t i = 0; i < faces.size(); ++i) {
         const auto& f = faces[i];
         if (f[0] == f[1] || f[1] == f[2] || f[2] == f[0]) {
-            throw std::invalid_argument("SurfaceMesh: invalid face at index " + std::to_string(i));
+            throw std::invalid_argument("SurfaceMesh: invalid face at " + std::to_string(i));
         }
         for (size_t j = 0; j < 3; ++j) {
-            const int& v = f[j];
+            int v = f[j];
             if (v < 0) {
-                throw std::invalid_argument("SurfaceMesh: negative vertex at index" +
-                                            std::to_string(i) + ',' + std::to_string(j));
+                throw std::invalid_argument("SurfaceMesh: negative vertex at " + std::to_string(i) +
+                                            ',' + std::to_string(j));
             }
         }
     }
@@ -50,6 +50,8 @@ void SurfaceMesh::checkNonManifoldVertices() const {
 }
 
 int SurfaceMesh::buildInteriorHalfedges(const Faces& faces) {
+    // Todo: change to unordered_map.
+    // Original size is the number of interior halfedges.
     std::map<std::pair<int, int>, int> halfedgeIndex;
     int nEdges = 0;
     const int nFaces = static_cast<int>(faces.size());
@@ -69,18 +71,17 @@ int SurfaceMesh::buildInteriorHalfedges(const Faces& faces) {
 
         faceHalfedge_.push_back(3 * i);
 
-        // iterate vertices
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j < 3; ++j) {
             const int tail = f[j];
             const int head = f[(j + 1) % 3];
-            const int heIdx = 3 * i + j;  // indexing for the current halfedge
+            const int heIdx = 3 * i + j;
 
             auto [it, inserted] = halfedgeIndex.try_emplace({tail, head}, heIdx);
 
             // handle bad orientation or non manifold behavior
             if (!inserted) {
                 const auto& h = it->first;
-                throw std::invalid_argument("SurfaceMesh: duplicate half-edge " +
+                throw std::invalid_argument("SurfaceMesh: duplicate half-edge at " +
                                             std::to_string(h.first) + ',' +
                                             std::to_string(h.second));
             }
@@ -114,7 +115,7 @@ int SurfaceMesh::buildInteriorHalfedges(const Faces& faces) {
 void SurfaceMesh::checkUnusedVertices() const {
     for (int i = 0; i < nVertices(); ++i) {
         if (vertexHalfedge(i) == INVALID) {
-            throw std::invalid_argument("SurfaceMesh: invalid argument, unnused vertex at: " +
+            throw std::invalid_argument("SurfaceMesh: invalid argument, unused vertex at " +
                                         std::to_string(i));
         }
     }
@@ -125,15 +126,16 @@ void SurfaceMesh::buildBoundaryHalfedges(const Faces& faces, int maxVertexIndex)
     std::unordered_map<int, int> heFromHead;
     const int nFaces = static_cast<int>(faces.size());
     const int originalSize = 3 * nFaces;
+    // See which halfedges don't have a twin. These will be twin to boundary hafledges.
     for (int i = 0; i < originalSize; ++i) {
         if (twin_[i] == INVALID) {
             const int twinIdx = originalSize + boundaryCount;
 
             twin_[i] = twinIdx;
-            // heFromHead[tail_[next_[i]]]=i;
             auto [it, inserted] = heFromHead.try_emplace(tail_[next_[i]], i);
+            // Check for non-manifold boundary behavior.
             if (!inserted) {
-                throw std::invalid_argument("SurfaceMesh: non-manifold boundary behavior at : " +
+                throw std::invalid_argument("SurfaceMesh: non-manifold boundary behavior at " +
                                             std::to_string(tail_[next_[i]]));
             }
 
@@ -143,7 +145,7 @@ void SurfaceMesh::buildBoundaryHalfedges(const Faces& faces, int maxVertexIndex)
             tail_.push_back(tail_[next_[i]]);
             next_.push_back(INVALID);
 
-            boundaryCount++;
+            ++boundaryCount;
         }
     }
     for (const auto& [head, halfedgeIdx] : heFromHead) {
@@ -151,7 +153,6 @@ void SurfaceMesh::buildBoundaryHalfedges(const Faces& faces, int maxVertexIndex)
         next_[twinIdx] = twin_[heFromHead.at(tail_[halfedgeIdx])];
     }
 
-    // write vertexHalfedge_
     vertexHalfedge_.resize(maxVertexIndex + 1, INVALID);
     const int nHalfedges = static_cast<int>(tail_.size());
     for (int i = 0; i < nHalfedges; ++i) {
@@ -163,11 +164,7 @@ SurfaceMesh::SurfaceMesh(const Faces& faces) {
     validateFaces(faces);
     int maxVertexIndex = buildInteriorHalfedges(faces);
     buildBoundaryHalfedges(faces, maxVertexIndex);
-
-    // check for unnused vertices
     checkUnusedVertices();
-
-    // check non manifold interior vertices
     checkNonManifoldVertices();
 }
 
@@ -244,6 +241,6 @@ int SurfaceMesh::degree(int v) const {
 }
 
 int SurfaceMesh::eulerCharacteristic() const {
-    return SurfaceMesh::nVertices() - SurfaceMesh::nEdges() + SurfaceMesh::nFaces();
+    return nVertices() - nEdges() + nFaces();
 }
 }  // namespace egregium

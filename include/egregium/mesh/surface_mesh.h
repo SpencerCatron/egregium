@@ -9,45 +9,51 @@ constexpr int INVALID = -1;  // placeholder for no input or boundary data.
 
 using Faces = std::vector<std::array<int, 3>>;
 
-/*
-Half edge structure that stores connectivity.
-
-each edge has two half edges pointing in opposite directions.
-*/
+// Halfedge structure for a manifold, consistently oriented triangle mesh.
+//
+// Every edge has two half edges pointing in opposite directions.
+// Each halfedge belongs to the face on its left side.
+// Boundary halfedges are those that have no face on their left side.
+//
+// For indexing: the interior halfedges on face f are indexed 3f, 3f+1, 3f+2.
+// Boundary halfedges are indexed after all interior halfedges in the order that we see interior
+// halfedges without a twin.
 class SurfaceMesh {
  public:
-    // build structure from list of triangles. each triangle has 3 vertices listed in
-    // counterclockwise order
+    // Builds the mesh from triangles listed in counterclockwise order. Vertex indices must be
+    // non-negative and use every index between 0 and the max index.
+    // Throw std::invalid_argument for empty input, negative indices, unused indices, non-manifold
+    // mesh, or inconsistent orientation on faces.
     explicit SurfaceMesh(const Faces& faces);
 
-    // element counts
+    // --element counts--------------
 
     int nVertices() const;
     int nEdges() const;
     int nFaces() const;
     int nHalfedges() const;
 
-    // half-edge navigation
+    // --half-edge navigation-----------
 
-    int next(int h) const;        // next half edge on same face, counterclockwise
-    int twin(int h) const;        // other half edge along a given edge
-    int tailVertex(int h) const;  // tail vertex of half edge
-    int headVertex(int h) const;  // head of half edge
-    int edge(int h) const;        // edge given half edge belongs to
-    int face(int h) const;        // face half edge belongs to (face on leftside of arrow)
+    int next(int h) const;  // Next half edge on same face, counterclockwise
+    int twin(int h) const;  // Other half edge along a given edge
+    int tailVertex(int h) const;
+    int headVertex(int h) const;
+    int edge(int h) const;
+    int face(int h) const;  // Face to left of h, or invalid on the boundary.
 
-    // elements to half edge
+    // --elements to half edge------------
 
-    int vertexHalfedge(int v) const;
-    int edgeHalfedge(int e) const;
-    int faceHalfedge(int f) const;
+    int vertexHalfedge(int v) const;  // Sends vertex to choice of halfedge.
+    int edgeHalfedge(int e) const;    // Sends edge to choice of halfedge.
+    int faceHalfedge(int f) const;    // sends face to choice of halfedge.
 
     // other functions
 
     bool isBoundaryHalfedge(int h) const;
     bool isBoundaryVertex(int v) const;
-    int degree(int v) const;          // number edges at vertex v
-    int eulerCharacteristic() const;  // v-E+F, tological invariant
+    int degree(int v) const;          // number edges at vertex v.
+    int eulerCharacteristic() const;  // v-E+F, topological invariant.
 
  private:
     std::vector<int> next_;
@@ -55,18 +61,16 @@ class SurfaceMesh {
     std::vector<int> tail_;
     std::vector<int> edge_;
     std::vector<int> face_;
-    // halfedge for given vertex, edge,face
 
-    std::vector<int> vertexHalfedge_;
-    std::vector<int> edgeHalfedge_;
-    std::vector<int> faceHalfedge_;
+    std::vector<int> vertexHalfedge_;  // Sends vertex to choice of halfedge.
+    std::vector<int> edgeHalfedge_;    // Sends edge to choice of halfedge.
+    std::vector<int> faceHalfedge_;    // Sends face fo choice of halfedge.
 
-    void checkNonManifoldVertices() const;  // check for non manifold behavior on interior vertex
-    int rotateHalfedge(int h) const;        // rotate outgoing halfedge around a specific vertex
+    void checkNonManifoldVertices() const;  // Check for non manifold behavior on interior vertex.
+    int rotateHalfedge(int h) const;        // Rotate outgoing halfedge around a specific vertex.
 
-    int buildInteriorHalfedges(const Faces& faces);  // build structure for interior half edges
-    void buildBoundaryHalfedges(const Faces& faces,
-                                int maxVertexIndex);  // build structure for boundary
+    int buildInteriorHalfedges(const Faces& faces);
+    void buildBoundaryHalfedges(const Faces& faces, int maxVertexIndex);
     void checkUnusedVertices() const;
 };
 }  // namespace egregium
