@@ -5,7 +5,7 @@ project(egregium LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# ---- Dependencies --------------------------- -------------
+# ---- Dependencies ----------------------------------------------------------
 include(FetchContent)
 
 # Eigen: linear algebra (vectors, sparse matrices, solvers)
@@ -33,22 +33,18 @@ FetchContent_MakeAvailable(eigen polyscope)
 add_library(egregium src/mesh/surface_mesh.cpp)
 target_include_directories(egregium PUBLIC include)
 
-
-
-# ---- Google Tests -----------------------------------------------------------------
+# ---- GoogleTest ------------------------------------------------------------
 FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
 )
-# for windows
+# Windows: use the same CRT as the parent project.
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
- 
 
-#testing--------------------
+# ---- Tests -----------------------------------------------------------------
 enable_testing()
 add_executable(tests tests/test_surface_mesh.cpp)
 target_link_libraries(tests PRIVATE egregium GTest::gtest_main)
 include(GoogleTest)
 gtest_discover_tests(tests)
- 

@@ -2,17 +2,21 @@
 #include <gtest/gtest.h>
 
 #include <ostream>
+#include <stdexcept>
 #include <string>
 
 #include "test_meshes.h"
 
 using egregium::SurfaceMesh;
 
-// testing class. mesh structure with added information
+// A test mesh with its expected counts and Euler characteristic.
 struct MeshCase {
     std::string name;
     test_meshes::Faces faces;
-    int v, e, f, chi;
+    int v;
+    int e;
+    int f;
+    int chi;
 };
 
 void PrintTo(const MeshCase& c, std::ostream* os) {
@@ -21,7 +25,7 @@ void PrintTo(const MeshCase& c, std::ostream* os) {
 
 class ValidMeshTest : public ::testing::TestWithParam<MeshCase> {};
 
-TEST_P(ValidMeshTest, counts) {
+TEST_P(ValidMeshTest, Counts) {
     const MeshCase& c = GetParam();
     SurfaceMesh mesh(c.faces);
     EXPECT_EQ(mesh.nVertices(), c.v);
@@ -29,7 +33,7 @@ TEST_P(ValidMeshTest, counts) {
     EXPECT_EQ(mesh.nFaces(), c.f);
 }
 
-TEST_P(ValidMeshTest, eulerCharcteristic) {
+TEST_P(ValidMeshTest, EulerCharacteristic) {
     const MeshCase& c = GetParam();
     SurfaceMesh mesh(c.faces);
     EXPECT_EQ(mesh.eulerCharacteristic(), c.chi);
@@ -38,7 +42,7 @@ TEST_P(ValidMeshTest, eulerCharcteristic) {
 TEST_P(ValidMeshTest, TwinOfTwinIsSelf) {
     SurfaceMesh mesh(GetParam().faces);
     for (int h = 0; h < mesh.nHalfedges(); ++h) {
-        EXPECT_EQ(mesh.twin(mesh.twin(h)), h) << "half-edge " << h;
+        EXPECT_EQ(mesh.twin(mesh.twin(h)), h) << "halfedge " << h;
     }
 }
 
@@ -46,7 +50,7 @@ TEST_P(ValidMeshTest, NextNextNextIsSelf) {
     SurfaceMesh mesh(GetParam().faces);
     for (int h = 0; h < mesh.nHalfedges(); ++h) {
         if (!mesh.isBoundaryHalfedge(h)) {
-            EXPECT_EQ(mesh.next(mesh.next(mesh.next(h))), h) << "half-edge " << h;
+            EXPECT_EQ(mesh.next(mesh.next(mesh.next(h))), h) << "halfedge " << h;
         }
     }
 }
@@ -54,15 +58,14 @@ TEST_P(ValidMeshTest, NextNextNextIsSelf) {
 TEST_P(ValidMeshTest, TwinIsNotSelf) {
     SurfaceMesh mesh(GetParam().faces);
     for (int h = 0; h < mesh.nHalfedges(); ++h) {
-        EXPECT_NE(mesh.twin(h), h) << "half-edge " << h;
+        EXPECT_NE(mesh.twin(h), h) << "halfedge " << h;
     }
 }
 
 TEST_P(ValidMeshTest, TwinTailIsSelfHead) {
     SurfaceMesh mesh(GetParam().faces);
     for (int h = 0; h < mesh.nHalfedges(); ++h) {
-        EXPECT_EQ(mesh.tailVertex(mesh.twin(h)), mesh.tailVertex(mesh.next(h)))
-            << "half-edge " << h;
+        EXPECT_EQ(mesh.tailVertex(mesh.twin(h)), mesh.tailVertex(mesh.next(h))) << "halfedge " << h;
     }
 }
 

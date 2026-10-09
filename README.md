@@ -9,7 +9,7 @@ C++ library for geometry processing, discrete differential geometry, and more.
 ## Planned Features
 - [ ] Half-edge mesh data structure
 - [ ] OBJ loading and mesh generators for canonical surfaces
-- [ ] contangent Laplacian and mass matrix
+- [ ] Cotangent Laplacian and mass matrix
 - [ ] Gaussian and mean curvature. Convergence tests
 - [ ] Geodesic distance via heat method
 - [ ] Mean curvature flow
