@@ -2,14 +2,11 @@
 
 #include <egregium/mesh/surface_mesh.h>
 
-#include <array>
-#include <vector>
-
 namespace test_meshes {
 
 using egregium::Faces;
 
-// V=4, E=6, F=4, chi=2, closed
+// v=4,E=6, F=4, chi=2, closed
 inline Faces tetrahedron() {
     return {{0, 1, 2}, {0, 3, 1}, {0, 2, 3}, {1, 3, 2}};
 }
@@ -58,9 +55,11 @@ inline Faces twoTetrahedra() {
     return {{0, 1, 2}, {0, 3, 1}, {0, 2, 3}, {1, 3, 2}, {4, 5, 6}, {4, 7, 5}, {4, 6, 7}, {5, 7, 6}};
 }
 
-// -- Invalid input -----------------------------------------------------
+//------------------------------------------------------
+// invalid input
+//------------------------------------------------------
 
-// Three triangles sharing edge 0-1 (non-manifold edge; repeats halfedge 1->0).
+// Three triangles sharing edge 0-1 (non-manifold edge; repeats half-edge 1->0).
 inline Faces nonManifoldEdge() {
     return {{0, 1, 2}, {1, 0, 3}, {1, 0, 4}};
 }
@@ -75,13 +74,13 @@ inline Faces inconsistentOrientation() {
     return {{0, 1, 2}, {0, 1, 3}};
 }
 
-// Five-vertex Moebius strip (repeats a halfedge).
+// Five-vertex Moebius strip ( repeats a half-edge).
 inline Faces moebiusStrip() {
     return {{0, 1, 2}, {1, 2, 3}, {2, 3, 4}, {3, 4, 0}, {4, 0, 1}};
 }
 
 // Two tetrahedra sharing only vertex 0 (non-manifold interior vertex).
-// No duplicate halfedges and no boundary, so only a vertex-rotation check catches it.
+// No duplicate half-edges and no boundary, so only a vertex-rotation check catches it.
 inline Faces tetrahedraSharingVertex() {
     return {{0, 1, 2}, {0, 3, 1}, {0, 2, 3}, {1, 3, 2}, {0, 4, 5}, {0, 6, 4}, {0, 5, 6}, {4, 6, 5}};
 }

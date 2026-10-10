@@ -5,7 +5,7 @@
 
 namespace egregium {
 
-constexpr int INVALID = -1;  // Placeholder for no input or boundary data.
+constexpr int kInvalid = -1;  // Placeholder for no input or boundary data.
 
 using Faces = std::vector<std::array<int, 3>>;
 
@@ -40,7 +40,7 @@ class SurfaceMesh {
     int tailVertex(int h) const;
     int headVertex(int h) const;
     int edge(int h) const;
-    int face(int h) const;  // Face to left of h, or INVALID on the boundary.
+    int face(int h) const;  // Face to left of h, or kInvalid on the boundary.
 
     // -- Elements to halfedge ----------------------------------------------
 
