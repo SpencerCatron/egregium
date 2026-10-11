@@ -8,21 +8,22 @@
 namespace egregium {
 class Geometry {
  public:
-    Geometry(const SurfaceMesh& mesh, std::vector<Eigen::Vector3d> vertices);
+    explicit Geometry(const SurfaceMesh& mesh, std::vector<Eigen::Vector3d> positions);
+    explicit Geometry(SurfaceMesh&& mesh, std::vector<Eigen::Vector3d> positions) = delete;
     const SurfaceMesh& mesh() const;
     const Eigen::Vector3d& position(int v) const;
-    void setPositions();
+    void setPositions(std::vector<Eigen::Vector3d> newPositions);
     Eigen::Vector3d halfedgeVector(int h) const;
 
     // edges
 
     double edgeLength(int e) const;
-    double cotanWeight(int e) const;
+    double cotanWeight(int e) const;  // .5(cotan of both opposite angels).
 
     // Corners
 
     double cornerAngle(int h) const;
-    double cotan(int h) const;
+    double cotan(int h) const;  
 
     // Faces
 
@@ -34,15 +35,15 @@ class Geometry {
     double vertexDualArea(int v) const;
     Eigen::Vector3d vertexNormal(int v) const;
     double angleSum(int v) const;
-    double angleDefefect(int v) const;
+    double angleDefect(int v) const;
 
     // Global
 
     double totalArea() const;
     double meanEdgeLength() const;
 
-private:
-   const SurfaceMesh& mesh_;
-   const std::vector<Eigen::Vector3d> positions_;
+ private:
+    const SurfaceMesh& mesh_;
+    std::vector<Eigen::Vector3d> positions_;
 };
 }  // namespace egregium
