@@ -30,7 +30,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(eigen polyscope)
 
 # ---- The library -----------------------------------------------------------
-add_library(egregium src/mesh/surface_mesh.cpp)
+add_library(egregium src/mesh/surface_mesh.cpp
+src/geometry/geometry.cpp)
 target_include_directories(egregium PUBLIC include)
 target_link_libraries(egregium PUBLIC Eigen3::Eigen)
 # ---- GoogleTest ------------------------------------------------------------
