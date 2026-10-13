@@ -36,6 +36,8 @@ double Geometry::cotanWeight(int e) const {
 }
 
 double Geometry::cornerAngle(int h) const {
+    if(mesh().isBoundaryHalfedge(h)) return 0;
+
     int h1 = mesh().twin(mesh().next(h));  // Correct orientation.
     int h2 = mesh().next(mesh().next(h));
     Eigen::Vector3d u(halfedgeVector(h1));
@@ -46,6 +48,8 @@ double Geometry::cornerAngle(int h) const {
 }
 
 double Geometry::cotan(int h) const {
+    if(mesh().isBoundaryHalfedge(h)) return 0;
+
     int h1 = mesh().twin(mesh().next(h));  // Correct orientation.
     int h2 = mesh().next(mesh().next(h));
     Eigen::Vector3d u(halfedgeVector(h1));
@@ -64,11 +68,78 @@ double Geometry::faceArea(int f) const {
     return .5 * u.cross(v).norm();  // Recall relation cross product and area of parallepiped.
 }
 
-Eigen::Vector3d Geometry::faceNormal(int f) const{
+Eigen::Vector3d Geometry::faceNormal(int f) const {
     int h1 = mesh().faceHalfedge(f);
     int h2 = mesh().next(h1);
     Eigen::Vector3d u(halfedgeVector(h1));
     Eigen::Vector3d v(halfedgeVector(h2));
     return u.cross(v).normalized();
+}
+
+double Geometry::vertexDualArea(int v) const {
+    int hStart = mesh().vertexHalfedge(v);
+    int h = hStart;
+    double areaSum = 0;
+    do {
+        if (mesh().isBoundaryHalfedge(h)) {
+            h = mesh().rotateHalfedge(h);
+            continue;
+        }
+
+        areaSum += faceArea(mesh().face(h)) / 3;
+        h = mesh().rotateHalfedge(h);
+    } while (h != hStart);
+    return areaSum;
+}
+
+Eigen::Vector3d Geometry::vertexNormal(int v) const {
+    int hStart = mesh().vertexHalfedge(v);
+    int h = hStart;
+    Eigen::Vector3d vectorSum(0, 0, 0);
+    do {
+        if (mesh().isBoundaryHalfedge(h)) {
+            h = mesh().rotateHalfedge(h);
+            continue;
+        }
+
+        vectorSum += cornerAngle(mesh().next(h)) * faceNormal(mesh().face(h));
+        h = mesh().rotateHalfedge(h);
+    } while (h != hStart);
+    return vectorSum.normalized();
+}
+
+double Geometry::angleSum(int v) const {
+    int hStart = mesh().vertexHalfedge(v);
+    int h = hStart;
+    double angleSum = 0;
+    do {
+        if (mesh().isBoundaryHalfedge(h)) {
+            h = mesh().rotateHalfedge(h);
+            continue;
+        }
+
+        angleSum += cornerAngle(mesh().next(h));
+    } while (h != hStart);
+    return angleSum;
+}
+
+double Geometry::angleDefect(int v) const {
+    return 2 * kPi - angleSum(v);
+}
+
+double Geometry::totalArea() const {
+    double areaSum = 0;
+    for (int f = 0; f < mesh().nFaces(); ++f) {
+        areaSum += faceArea(f);
+    }
+    return areaSum;
+}
+
+double Geometry::meanEdgeLength() const {
+    double edgeSum = 0;
+    for (int e = 0; e < mesh().nEdges(); ++e) {
+        edgeSum += edgeLength(e);
+    }
+    return edgeSum / mesh().nEdges();
 }
 }  // namespace egregium
