@@ -15,9 +15,16 @@ constexpr double kPi = std::numbers::pi;
 // areas, normals, and curvature.
 //
 // Geometry holds a reference to the mesh, which must outlive it, and positions.
+//
+// Angles are radians, halfedge quantities return 0 if they are boundary.
 class Geometry {
  public:
+    // positions[v] is the position of vertex v.
+    // Mesh must outlive Geometry.
+    // Throws std::invalid_argument if sizes of mesh and positions are not equal.
     explicit Geometry(const SurfaceMesh& mesh, std::vector<Eigen::Vector3d> positions);
+
+    // Temporary meshes are rejected at compile time, since mesh_ would dangle.
     explicit Geometry(SurfaceMesh&& mesh, std::vector<Eigen::Vector3d> positions) = delete;
     const SurfaceMesh& mesh() const;
     const Eigen::Vector3d& position(int v) const;
