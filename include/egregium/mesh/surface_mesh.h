@@ -40,11 +40,12 @@ class SurfaceMesh {
     int tailVertex(int h) const;
     int headVertex(int h) const;
     int edge(int h) const;
-    int face(int h) const;  // Face to left of h, or kInvalid on the boundary.
+    int face(int h) const;            // Face to left of h, or kInvalid on the boundary.
+    int rotateHalfedge(int h) const;  // Rotate outgoing halfedge around its tail vertex.
 
     // -- Elements to halfedge ----------------------------------------------
 
-    int vertexHalfedge(int v) const;  // Sends vertex to choice of halfedge.
+    int vertexHalfedge(int v) const;  // Sends vertex to choice of halfedge with v as tail.
     int edgeHalfedge(int e) const;    // Sends edge to choice of halfedge.
     int faceHalfedge(int f) const;    // Sends face to choice of halfedge.
 
@@ -60,7 +61,6 @@ class SurfaceMesh {
     void buildBoundaryHalfedges(const Faces& faces, int maxVertexIndex);
     void checkUnusedVertices() const;
     void checkNonManifoldVertices() const;  // Check for non-manifold interior vertices.
-    int rotateHalfedge(int h) const;        // Rotate outgoing halfedge around its tail vertex.
 
     std::vector<int> next_;
     std::vector<int> twin_;
