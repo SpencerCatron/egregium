@@ -2,8 +2,8 @@
 
 namespace egregium {
 Geometry::Geometry(const SurfaceMesh& mesh, std::vector<Eigen::Vector3d> positions)
-    : mesh_(mesh), positions_(positions) {
-    if (positions_.size() != mesh_.nVertices()) {
+    : mesh_(mesh), positions_(std::move(positions)) {
+    if (static_cast<int>(positions_.size()) != mesh_.nVertices()) {
         throw std::invalid_argument("Number of positions does not match number of vertices");
     }
 }
@@ -17,7 +17,10 @@ const Eigen::Vector3d& Geometry::position(int v) const {
 }
 
 void Geometry::setPositions(std::vector<Eigen::Vector3d> newPositions) {
-    positions_ = newPositions;
+    if (static_cast<int>(newPositions.size()) != mesh_.nVertices()) {
+        throw std::invalid_argument("Number of positions does not match number of vertices");
+    }
+    positions_ = std::move(newPositions);
 }
 
 Eigen::Vector3d Geometry::halfedgeVector(int h) const {
@@ -26,7 +29,8 @@ Eigen::Vector3d Geometry::halfedgeVector(int h) const {
     return position(head) - position(tail);
 }
 
-double Geometry::edgeLength(int h) const {
+double Geometry::edgeLength(int e) const {
+    int h = mesh().edgeHalfedge(e);
     return halfedgeVector(h).norm();
 }
 
@@ -36,7 +40,7 @@ double Geometry::cotanWeight(int e) const {
 }
 
 double Geometry::cornerAngle(int h) const {
-    if(mesh().isBoundaryHalfedge(h)) return 0;
+    if (mesh().isBoundaryHalfedge(h)) return 0;
 
     int h1 = mesh().twin(mesh().next(h));  // Correct orientation.
     int h2 = mesh().next(mesh().next(h));
@@ -48,7 +52,7 @@ double Geometry::cornerAngle(int h) const {
 }
 
 double Geometry::cotan(int h) const {
-    if(mesh().isBoundaryHalfedge(h)) return 0;
+    if (mesh().isBoundaryHalfedge(h)) return 0;
 
     int h1 = mesh().twin(mesh().next(h));  // Correct orientation.
     int h2 = mesh().next(mesh().next(h));
@@ -81,12 +85,10 @@ double Geometry::vertexDualArea(int v) const {
     int h = hStart;
     double areaSum = 0;
     do {
-        if (mesh().isBoundaryHalfedge(h)) {
-            h = mesh().rotateHalfedge(h);
-            continue;
+        if (!mesh().isBoundaryHalfedge(h)) {
+            areaSum += faceArea(mesh().face(h)) / 3;
         }
 
-        areaSum += faceArea(mesh().face(h)) / 3;
         h = mesh().rotateHalfedge(h);
     } while (h != hStart);
     return areaSum;
@@ -97,12 +99,10 @@ Eigen::Vector3d Geometry::vertexNormal(int v) const {
     int h = hStart;
     Eigen::Vector3d vectorSum(0, 0, 0);
     do {
-        if (mesh().isBoundaryHalfedge(h)) {
-            h = mesh().rotateHalfedge(h);
-            continue;
+        if (!mesh().isBoundaryHalfedge(h)) {
+            vectorSum += cornerAngle(mesh().next(h)) * faceNormal(mesh().face(h));
         }
 
-        vectorSum += cornerAngle(mesh().next(h)) * faceNormal(mesh().face(h));
         h = mesh().rotateHalfedge(h);
     } while (h != hStart);
     return vectorSum.normalized();
@@ -113,18 +113,27 @@ double Geometry::angleSum(int v) const {
     int h = hStart;
     double angleSum = 0;
     do {
-        if (mesh().isBoundaryHalfedge(h)) {
-            h = mesh().rotateHalfedge(h);
-            continue;
+        if (!mesh().isBoundaryHalfedge(h)) {
+            angleSum += cornerAngle(mesh().next(h));
         }
+        h = mesh().rotateHalfedge(h);
 
-        angleSum += cornerAngle(mesh().next(h));
     } while (h != hStart);
     return angleSum;
 }
 
 double Geometry::angleDefect(int v) const {
+    if (mesh().isBoundaryVertex(v)) {
+        return 0;
+    }
     return 2 * kPi - angleSum(v);
+}
+
+double Geometry::boundaryTurningAngle(int v) const {
+    if (!mesh().isBoundaryVertex(v)) {
+        return 0;
+    }
+    return kPi - angleSum(v);
 }
 
 double Geometry::totalArea() const {
