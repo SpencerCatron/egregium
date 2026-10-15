@@ -2,9 +2,15 @@
 
 #include <egregium/mesh/surface_mesh.h>
 
+#include <Eigen/Dense>
+#include <cmath>
+#include <numbers>
+#include <vector>
+
 namespace test_meshes {
 
 using egregium::Faces;
+using Positions = std::vector<Eigen::Vector3d>;
 
 // v=4,E=6, F=4, chi=2, closed
 inline Faces tetrahedron() {
@@ -53,6 +59,66 @@ inline Faces fan() {
 // V=8, E=12, F=8, chi=4 (two spheres)
 inline Faces twoTetrahedra() {
     return {{0, 1, 2}, {0, 3, 1}, {0, 2, 3}, {1, 3, 2}, {4, 5, 6}, {4, 7, 5}, {4, 6, 7}, {5, 7, 6}};
+}
+
+//------------------------------------------------------
+// positions for the meshes above
+//------------------------------------------------------
+
+// Regular tetrahedron centered at the origin, edge length 2*sqrt(2).
+inline Positions tetrahedronPositions() {
+    return {{1, 1, 1}, {1, -1, -1}, {-1, 1, -1}, {-1, -1, 1}};
+}
+
+// Regular octahedron with vertices at +-x, +-y, +-z, edge length sqrt(2).
+inline Positions octahedronPositions() {
+    return {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+}
+
+// Unit cube centered at the origin. Bit k of the vertex index is coordinate k.
+inline Positions cubePositions() {
+    Positions p;
+    for (int i = 0; i < 8; ++i) {
+        p.emplace_back((i & 1) - 0.5, ((i >> 1) & 1) - 0.5, ((i >> 2) & 1) - 0.5);
+    }
+    return p;
+}
+
+// Torus with major radius 2 and minor radius 1. Vertex 3*i+j sits at angle i around
+// the major circle and angle j around the tube.
+inline Positions torusPositions() {
+    constexpr double kStep = 2.0 * std::numbers::pi / 3.0;
+    Positions p;
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            const double u = kStep * i;
+            const double v = kStep * j;
+            const double r = 2.0 + std::cos(v);
+            p.emplace_back(r * std::cos(u), r * std::sin(u), std::sin(v));
+        }
+    }
+    return p;
+}
+
+// Right isosceles triangle in the xy-plane with legs of length 1 along x and y.
+inline Positions singleTrianglePositions() {
+    return {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};
+}
+
+// Unit square in the xy-plane, split along the diagonal 0-2.
+inline Positions squarePositions() {
+    return {{0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0}};
+}
+
+// Square diamond rings of radius 2 (vertices 0-3) and 1 (vertices 4-7). Area 6.
+inline Positions annulusPositions() {
+    return {{2, 0, 0}, {0, 2, 0}, {-2, 0, 0}, {0, -2, 0},
+            {1, 0, 0}, {0, 1, 0}, {-1, 0, 0}, {0, -1, 0}};
+}
+
+// Square [-1,1]^2 with the center vertex 4 lifted to the given height (0 is flat).
+inline Positions fanPositions(double height = 0.0) {
+    return {{-1, -1, 0}, {1, -1, 0}, {1, 1, 0}, {-1, 1, 0}, {0, 0, height}};
 }
 
 //------------------------------------------------------
