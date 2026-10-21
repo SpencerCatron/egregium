@@ -12,15 +12,19 @@ namespace egregium {
 namespace {
 // Face entries are v, v/vt, v//vn, and v/vt/vn; only v is used.
 int getVertexIndex(const std::string& s, int nPositions) {
-    int rawIndex = std::stoi(s.substr(0, s.find('/')));
+    int rawIndex = 0;
+    try {
+        rawIndex = std::stoi(s.substr(0, s.find('/')));
+    } catch (const std::logic_error&) {
+        throw std::runtime_error("readObj: invalid face index " + s);
+    }
     if (rawIndex == 0) {
         throw std::runtime_error("readObj: 0 is not valid OBJ index");
     }
     if (rawIndex < 0) {
         return nPositions + rawIndex;
-    } else {
-        return rawIndex - 1;
     }
+    return rawIndex - 1;
 }
 
 // Fan triangulates a polygon and appends these triangles to given vector of faces.
@@ -41,7 +45,7 @@ MeshData readObj(const std::filesystem::path& path) {
     std::vector<Eigen::Vector3d> positions;
     std::ifstream file(path);
     if (!file) {
-        throw std::runtime_error("readObj cannot open " + path.string());
+        throw std::runtime_error("readObj: cannot open " + path.string());
     }
     std::string line;
     while (std::getline(file, line)) {
@@ -75,7 +79,7 @@ void writeObj(const std::filesystem::path& path, const Faces& faces,
               const std::vector<Eigen::Vector3d>& positions) {
     std::ofstream file(path);
     if (!file) {
-        throw std::runtime_error("writeOBJ: failed while writing " + path.string());
+        throw std::runtime_error("writeOBJ: cannot open " + path.string());
     }
 
     file.precision(std::numeric_limits<double>::max_digits10);
@@ -84,6 +88,10 @@ void writeObj(const std::filesystem::path& path, const Faces& faces,
     }
     for (const auto& f : faces) {
         file << "f " << f[0] + 1 << ' ' << f[1] + 1 << ' ' << f[2] + 1 << '\n';
+    }
+    file.close();
+    if (!file) {
+        throw std::runtime_error("writeObj: failed while writing " + path.string());
     }
 }
 }  // namespace egregium

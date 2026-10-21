@@ -46,7 +46,7 @@ FetchContent_MakeAvailable(googletest)
 
 # ---- Tests --------------------------------------
 enable_testing()
-add_executable(tests tests/test_surface_mesh.cpp tests/test_geometry.cpp)
+add_executable(tests tests/test_surface_mesh.cpp tests/test_geometry.cpp tests/test_obj.cpp)
 target_link_libraries(tests PRIVATE egregium GTest::gtest_main)
 include(GoogleTest)
 gtest_discover_tests(tests)
