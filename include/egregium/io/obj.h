@@ -14,7 +14,7 @@ struct MeshData {
 
 // Reads vertex positions and faces from OBJ file.
 // Polygons are fan triangulated.
-// Throws std::runtime_error if file cannot be opened or is malformed.
+// Throws std::runtime_error if file cannot be opened, is malformed, or cannot be written.
 MeshData readObj(const std::filesystem::path& path);
 
 // Writes positions and triangular faces as OBJ file.
