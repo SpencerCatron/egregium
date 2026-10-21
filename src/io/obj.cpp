@@ -1,6 +1,7 @@
 #include <egregium/io/obj.h>
 
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -9,14 +10,14 @@
 
 namespace egregium {
 namespace {
-// f values are v/vt/vn , we only need the v
-int getVertexIndex(const std::string& s, int positionsSize) {
+// Face entries are v, v/vt, v//vn, and v/vt/vn; only v is used.
+int getVertexIndex(const std::string& s, int nPositions) {
     int rawIndex = std::stoi(s.substr(0, s.find('/')));
     if (rawIndex == 0) {
-        throw std::invalid_argument("readOBJ: 0 is not valid OBJ index");
+        throw std::runtime_error("readObj: 0 is not valid OBJ index");
     }
     if (rawIndex < 0) {
-        return positionsSize + rawIndex;
+        return nPositions + rawIndex;
     } else {
         return rawIndex - 1;
     }
@@ -26,9 +27,9 @@ int getVertexIndex(const std::string& s, int positionsSize) {
 // This assumes some sort of convexity on the polygon.
 void appendFanTriangulation(const std::vector<int>& vertices, Faces& faces) {
     if (vertices.size() < 3) {
-        throw std::invalid_argument("readObj: not enough vertices on face");
+        throw std::runtime_error("readObj: not enough vertices on face");
     }
-    for (size_t i = 1; i < vertices.size() - 1; ++i) {
+    for (std::size_t i = 1; i < vertices.size() - 1; ++i) {
         faces.push_back({vertices[0], vertices[i], vertices[i + 1]});
     }
 }
@@ -53,15 +54,15 @@ MeshData readObj(const std::filesystem::path& path) {
             double x, y, z;
             ss >> x >> y >> z;
             if (!ss) {
-                throw std::invalid_argument("readObj: invalid vertex");
+                throw std::runtime_error("readObj: invalid vertex");
             }
             positions.push_back(Eigen::Vector3d(x, y, z));
-        }
-        else if (type == "f") {
+        } else if (type == "f") {
             std::vector<int> vertices;
             std::string rawVertexData;
             while (ss >> rawVertexData) {
-                vertices.push_back( getVertexIndex(rawVertexData, static_cast<int>(positions.size())));
+                vertices.push_back(
+                    getVertexIndex(rawVertexData, static_cast<int>(positions.size())));
             }
             appendFanTriangulation(vertices, faces);
         }
@@ -70,4 +71,19 @@ MeshData readObj(const std::filesystem::path& path) {
     return MeshData(std::move(faces), std::move(positions));
 }
 
+void writeObj(const std::filesystem::path& path, const Faces& faces,
+              const std::vector<Eigen::Vector3d>& positions) {
+    std::ofstream file(path);
+    if (!file) {
+        throw std::runtime_error("writeOBJ: failed while writing " + path.string());
+    }
+
+    file.precision(std::numeric_limits<double>::max_digits10);
+    for (const auto& p : positions) {
+        file << "v " << p.x() << ' ' << p.y() << ' ' << p.z() << '\n';
+    }
+    for (const auto& f : faces) {
+        file << "f " << f[0] + 1 << ' ' << f[1] + 1 << ' ' << f[2] + 1 << '\n';
+    }
+}
 }  // namespace egregium
