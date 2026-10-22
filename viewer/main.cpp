@@ -5,6 +5,7 @@
 #include <polyscope/surface_mesh.h>
 
 #include <filesystem>
+#include <vector>
 
 int main() {
     const std::filesystem::path meshPath =
@@ -14,10 +15,12 @@ int main() {
     egregium::Geometry geom(mesh, data.positions);
 
     std::vector<double> gaussian(mesh.nVertices());
+    std::vector<double> meanCurvature(mesh.nVertices());
     std::vector<Eigen::Vector3d> faceNormal(mesh.nFaces());
 
     for (int v = 0; v < mesh.nVertices(); ++v) {
-        gaussian[v] = geom.gaussian(v);
+        gaussian[v] = geom.gaussianCurvature(v);
+        meanCurvature[v] = geom.meanCurvature(v);
     }
     for (int f = 0; f < mesh.nFaces(); ++f) {
         faceNormal[f] = geom.faceNormal(f);
@@ -26,6 +29,7 @@ int main() {
     polyscope::init();
     auto* psMesh = polyscope::registerSurfaceMesh("Spot", data.positions, data.faces);
     psMesh->addVertexScalarQuantity("Gaussian curvature", gaussian);
+    psMesh->addVertexScalarQuantity("Mean curvature", meanCurvature);
     psMesh->addFaceVectorQuantity("Face Normal", faceNormal);
     polyscope::show();
 }

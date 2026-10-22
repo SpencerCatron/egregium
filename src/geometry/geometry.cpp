@@ -129,8 +129,35 @@ double Geometry::angleDefect(int v) const {
     return 2 * kPi - angleSum(v);
 }
 
-double Geometry::gaussian(int v) const{
-    return angleDefect(v)/vertexDualArea(v);
+double Geometry::dihedralAngle(int e) const {
+    int h = mesh().edgeHalfedge(e);
+    if (mesh().isBoundaryHalfedge(h) || mesh().isBoundaryHalfedge(mesh().twin(h))) {
+        return 0;
+    }
+
+    auto n1 = faceNormal(mesh().face(h));
+    auto n2 = faceNormal(mesh().face(mesh().twin(h)));
+    auto v = halfedgeVector(h).normalized();
+
+    return std::atan2((n1.cross(n2)).dot(v), n1.dot(n2));
+}
+
+double Geometry::gaussianCurvature(int v) const {
+    return angleDefect(v) / vertexDualArea(v);
+}
+
+double Geometry::meanCurvature(int v) const {
+    if (mesh().isBoundaryVertex(v)) {
+        return 0;
+    }
+    double sum = 0;
+    int hStart = mesh().vertexHalfedge(v);
+    int h = hStart;
+    do {
+        sum += dihedralAngle(mesh().edge(h)) * edgeLength(mesh().edge(h));
+        h = mesh().rotateHalfedge(h);
+    } while (h != hStart);
+    return sum / (4 * vertexDualArea(v));
 }
 
 double Geometry::boundaryTurningAngle(int v) const {

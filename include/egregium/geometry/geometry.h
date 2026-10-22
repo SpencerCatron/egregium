@@ -31,22 +31,22 @@ class Geometry {
     void setPositions(std::vector<Eigen::Vector3d> newPositions);
     Eigen::Vector3d halfedgeVector(int h) const;
 
-    // edges
+    // edges-----------------------------------------------
 
     double edgeLength(int e) const;
     double cotanWeight(int e) const;  // .5(cotan of both opposite angels).
 
-    // Corners
+    // Corners---------------------------------------------------
 
     double cornerAngle(int h) const;  // Angle opposite of given halfedge.
     double cotan(int h) const;        // Cotangent of angle opposite of given halfedge.
 
-    // Faces
+    // Faces------------------------------------------------------
 
     double faceArea(int f) const;
     Eigen::Vector3d faceNormal(int f) const;
 
-    // vertices
+    // vertices---------------------------------------------------------
 
     double vertexDualArea(int v) const;  // Barycentric area : 1/3 area of each touching face.
     Eigen::Vector3d vertexNormal(int v) const;  // Angle weighted mean of normals surrounding v.
@@ -56,13 +56,18 @@ class Geometry {
     // Returns 0 for boundary vertices.
     double angleDefect(int v) const;
 
-    double gaussian(int v) const;
+    // Angle of the two face across a given edge.
+    // Returns 0 for boundary edges.
+    double dihedralAngle(int e) const;
+
+    double gaussianCurvature(int v) const;
+    double meanCurvature(int v) const;  // Returns 0 for boundary vertices.
 
     // pi - angleSum. This is the geodesic curvature of the boundary curve.
     // Returns 0 for interior vertices.
     double boundaryTurningAngle(int v) const;
 
-    // Global
+    // Global-------------------------------------------------------
 
     double totalArea() const;
     double meanEdgeLength() const;
@@ -70,5 +75,5 @@ class Geometry {
  private:
     const SurfaceMesh& mesh_;
     std::vector<Eigen::Vector3d> positions_;
-};  
+};
 }  // namespace egregium
