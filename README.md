@@ -4,17 +4,18 @@ C++ library for geometry processing, discrete differential geometry, and more.
 > **Status:** This project is in very early development.
 
 ## Features
-- [ ] Half-edge mesh data structure
-- [ ] Geometric data strucutre
-- [ ] Basic viewer (polyscope)
-- [ ] OBJ reading and writing
-- [ ] Mean and Gaussian curvatures
+- [x] Half-edge mesh data structure
+- [x] Geometric data structre
+- [x] Basic viewer (polyscope)
+- [x] OBJ reading and writing
+- [x] Mean and Gaussian curvatures
+- [x] Cotangent Laplacian and mass matrix 
 
 ## Planned Features
 - [ ] mesh generators for canonical surfaces
-- [ ] Cotangent Laplacian and mass matrix
 - [ ] Geodesic distance via heat method
-- [ ] Minimal surfaces
+- [ ] heat dispersion demo
+- [ ] Minimal surfaces demo
 - [ ] Better viewer
 - [ ] Complete webapp version
 
