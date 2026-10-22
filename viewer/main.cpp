@@ -6,8 +6,6 @@
 
 #include <filesystem>
 
-#include "imgui.h"
-
 int main() {
     const std::filesystem::path meshPath =
         std::filesystem::path(EGREGIUM_DATA_DIR) / "spot_triangulated.obj";
@@ -19,7 +17,7 @@ int main() {
     std::vector<Eigen::Vector3d> faceNormal(mesh.nFaces());
 
     for (int v = 0; v < mesh.nVertices(); ++v) {
-        gaussian[v] = geom.angleDefect(v) / geom.vertexDualArea(v);
+        gaussian[v] = geom.gaussian(v);
     }
     for (int f = 0; f < mesh.nFaces(); ++f) {
         faceNormal[f] = geom.faceNormal(f);
@@ -27,7 +25,7 @@ int main() {
 
     polyscope::init();
     auto* psMesh = polyscope::registerSurfaceMesh("Spot", data.positions, data.faces);
-    psMesh->addVertexScalarQuantity("Guassian curvature", gaussian);
+    psMesh->addVertexScalarQuantity("Gaussian curvature", gaussian);
     psMesh->addFaceVectorQuantity("Face Normal", faceNormal);
     polyscope::show();
 }
