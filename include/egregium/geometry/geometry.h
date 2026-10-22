@@ -22,10 +22,10 @@ class Geometry {
     // positions[v] is the position of vertex v.
     // Mesh must outlive Geometry.
     // Throws std::invalid_argument if sizes of mesh and positions are not equal.
-    explicit Geometry(const SurfaceMesh& mesh, std::vector<Eigen::Vector3d> positions);
+    Geometry(const SurfaceMesh& mesh, std::vector<Eigen::Vector3d> positions);
 
     // Temporary meshes are rejected at compile time, since mesh_ would dangle.
-    explicit Geometry(SurfaceMesh&& mesh, std::vector<Eigen::Vector3d> positions) = delete;
+    Geometry(SurfaceMesh&& mesh, std::vector<Eigen::Vector3d> positions) = delete;
     const SurfaceMesh& mesh() const;
     const Eigen::Vector3d& position(int v) const;
     void setPositions(std::vector<Eigen::Vector3d> newPositions);
@@ -60,8 +60,8 @@ class Geometry {
     // Returns 0 for boundary edges.
     double dihedralAngle(int e) const;
 
-    double gaussianCurvature(int v) const;
-    double meanCurvature(int v) const;  // Returns 0 for boundary vertices.
+    double gaussianCurvature(int v) const;  // Pointwise value. Returns 0 for boundary vertices.
+    double meanCurvature(int v) const;      // Pointwise value. Returns 0 for boundary vertices.
 
     // pi - angleSum. This is the geodesic curvature of the boundary curve.
     // Returns 0 for interior vertices.

@@ -1,10 +1,15 @@
 #include <egregium/geometry/geometry.h>
 
+#include <cmath>
+#include <stdexcept>
+#include <utility>
+
 namespace egregium {
 Geometry::Geometry(const SurfaceMesh& mesh, std::vector<Eigen::Vector3d> positions)
     : mesh_(mesh), positions_(std::move(positions)) {
     if (static_cast<int>(positions_.size()) != mesh_.nVertices()) {
-        throw std::invalid_argument("Number of positions does not match number of vertices");
+        throw std::invalid_argument(
+            "Geometry: Number of positions does not match number of vertices");
     }
 }
 
@@ -18,7 +23,8 @@ const Eigen::Vector3d& Geometry::position(int v) const {
 
 void Geometry::setPositions(std::vector<Eigen::Vector3d> newPositions) {
     if (static_cast<int>(newPositions.size()) != mesh_.nVertices()) {
-        throw std::invalid_argument("Number of positions does not match number of vertices");
+        throw std::invalid_argument(
+            "Geometry: Number of positions does not match number of vertices");
     }
     positions_ = std::move(newPositions);
 }
@@ -36,11 +42,13 @@ double Geometry::edgeLength(int e) const {
 
 double Geometry::cotanWeight(int e) const {
     int h = mesh().edgeHalfedge(e);
-    return .5 * (cotan(h) + cotan(mesh().twin(h)));
+    return 0.5 * (cotan(h) + cotan(mesh().twin(h)));
 }
 
 double Geometry::cornerAngle(int h) const {
-    if (mesh().isBoundaryHalfedge(h)) return 0;
+    if (mesh().isBoundaryHalfedge(h)) {
+        return 0.0;
+    }
 
     int h1 = mesh().twin(mesh().next(h));  // Correct orientation.
     int h2 = mesh().next(mesh().next(h));
@@ -52,7 +60,7 @@ double Geometry::cornerAngle(int h) const {
 }
 
 double Geometry::cotan(int h) const {
-    if (mesh().isBoundaryHalfedge(h)) return 0;
+    if (mesh().isBoundaryHalfedge(h)) return 0.0;
 
     int h1 = mesh().twin(mesh().next(h));  // Correct orientation.
     int h2 = mesh().next(mesh().next(h));
@@ -69,7 +77,7 @@ double Geometry::faceArea(int f) const {
     Eigen::Vector3d u(halfedgeVector(h1));
     Eigen::Vector3d v(halfedgeVector(h2));
 
-    return .5 * u.cross(v).norm();  // Recall relation cross product and area of parallepiped.
+    return 0.5 * u.cross(v).norm();  // Recall relation cross product and area of parallelogram.
 }
 
 Eigen::Vector3d Geometry::faceNormal(int f) const {
@@ -111,20 +119,20 @@ Eigen::Vector3d Geometry::vertexNormal(int v) const {
 double Geometry::angleSum(int v) const {
     int hStart = mesh().vertexHalfedge(v);
     int h = hStart;
-    double angleSum = 0;
+    double Sum = 0;
     do {
         if (!mesh().isBoundaryHalfedge(h)) {
-            angleSum += cornerAngle(mesh().next(h));
+            Sum += cornerAngle(mesh().next(h));
         }
         h = mesh().rotateHalfedge(h);
 
     } while (h != hStart);
-    return angleSum;
+    return Sum;
 }
 
 double Geometry::angleDefect(int v) const {
     if (mesh().isBoundaryVertex(v)) {
-        return 0;
+        return 0.0;
     }
     return 2 * kPi - angleSum(v);
 }
@@ -132,7 +140,7 @@ double Geometry::angleDefect(int v) const {
 double Geometry::dihedralAngle(int e) const {
     int h = mesh().edgeHalfedge(e);
     if (mesh().isBoundaryHalfedge(h) || mesh().isBoundaryHalfedge(mesh().twin(h))) {
-        return 0;
+        return 0.0;
     }
 
     auto n1 = faceNormal(mesh().face(h));
@@ -148,7 +156,7 @@ double Geometry::gaussianCurvature(int v) const {
 
 double Geometry::meanCurvature(int v) const {
     if (mesh().isBoundaryVertex(v)) {
-        return 0;
+        return 0.0;
     }
     double sum = 0;
     int hStart = mesh().vertexHalfedge(v);
@@ -162,7 +170,7 @@ double Geometry::meanCurvature(int v) const {
 
 double Geometry::boundaryTurningAngle(int v) const {
     if (!mesh().isBoundaryVertex(v)) {
-        return 0;
+        return 0.0;
     }
     return kPi - angleSum(v);
 }
