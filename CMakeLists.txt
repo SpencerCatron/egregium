@@ -32,7 +32,8 @@ FetchContent_MakeAvailable(eigen polyscope)
 # ---- The library -----------------------------------------------------------
 add_library(egregium src/mesh/surface_mesh.cpp
 src/geometry/geometry.cpp
-src/io/obj.cpp)
+src/io/obj.cpp
+src/operators/laplacian.cpp)
 target_include_directories(egregium PUBLIC include)
 target_link_libraries(egregium PUBLIC Eigen3::Eigen)
 # ---- GoogleTest ------------------------------------------------------------
@@ -46,7 +47,10 @@ FetchContent_MakeAvailable(googletest)
 
 # ---- Tests --------------------------------------
 enable_testing()
-add_executable(tests tests/test_surface_mesh.cpp tests/test_geometry.cpp tests/test_obj.cpp)
+add_executable(tests tests/test_surface_mesh.cpp 
+tests/test_geometry.cpp 
+tests/test_obj.cpp
+tests/test_laplacian.cpp)
 target_link_libraries(tests PRIVATE egregium GTest::gtest_main)
 include(GoogleTest)
 gtest_discover_tests(tests)
