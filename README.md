@@ -6,15 +6,17 @@ C++ library for geometry processing, discrete differential geometry, and more.
 ## Features
 - [ ] Half-edge mesh data structure
 - [ ] Geometric data strucutre
+- [ ] Basic viewer (polyscope)
+- [ ] OBJ reading and writing
+- [ ] Mean and Gaussian curvatures
 
 ## Planned Features
-- [ ] OBJ loading and mesh generators for canonical surfaces
+- [ ] mesh generators for canonical surfaces
 - [ ] Cotangent Laplacian and mass matrix
-- [ ] Mean curvature. Convergence tests
 - [ ] Geodesic distance via heat method
-- [ ] Mean curvature flow
 - [ ] Minimal surfaces
-- [ ] Interactive viewer (Polyscope)
+- [ ] Better viewer
+- [ ] Complete webapp version
 
 ## Building
 Requires CMake 3.20+ and a C++20 compiler. Dependencies (Eigen, Polyscope, GoogleTest)
