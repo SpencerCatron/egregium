@@ -50,3 +50,9 @@ add_executable(tests tests/test_surface_mesh.cpp tests/test_geometry.cpp tests/t
 target_link_libraries(tests PRIVATE egregium GTest::gtest_main)
 include(GoogleTest)
 gtest_discover_tests(tests)
+
+
+# --- Viewer ------------------------------------
+add_executable(viewer viewer/main.cpp)
+target_link_libraries(viewer PRIVATE egregium polyscope)
+target_compile_definitions(viewer PRIVATE EGREGIUM_DATA_DIR="${CMAKE_SOURCE_DIR}/data")
