@@ -36,5 +36,4 @@ imgui.ini
 # Generated results
 output/
 screenshots/
-data/large/
 *.csv
