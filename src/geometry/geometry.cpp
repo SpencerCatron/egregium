@@ -129,6 +129,10 @@ double Geometry::angleDefect(int v) const {
     return 2 * kPi - angleSum(v);
 }
 
+double Geometry::gaussian(int v) const{
+    return angleDefect(v)/vertexDualArea(v);
+}
+
 double Geometry::boundaryTurningAngle(int v) const {
     if (!mesh().isBoundaryVertex(v)) {
         return 0;

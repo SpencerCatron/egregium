@@ -52,9 +52,11 @@ class Geometry {
     Eigen::Vector3d vertexNormal(int v) const;  // Angle weighted mean of normals surrounding v.
     double angleSum(int v) const;
 
-    // 2*pi - angleSum. This is the discrete Gaussian curvature.
+    // 2*pi - angleSum. This is the related to Gaussian curvature.
     // Returns 0 for boundary vertices.
     double angleDefect(int v) const;
+
+    double gaussian(int v) const;
 
     // pi - angleSum. This is the geodesic curvature of the boundary curve.
     // Returns 0 for interior vertices.
