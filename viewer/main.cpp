@@ -1,3 +1,4 @@
+#include <egregium/algorithms/heat_diffusion.h>
 #include <egregium/geometry/geometry.h>
 #include <egregium/io/obj.h>
 #include <egregium/mesh/surface_mesh.h>
@@ -25,11 +26,34 @@ int main() {
     for (int f = 0; f < mesh.nFaces(); ++f) {
         faceNormal[f] = geom.faceNormal(f);
     }
+    egregium::HeatDiffusion heat(geom);
+    Eigen::VectorXd u = Eigen::VectorXd::Zero(mesh.nVertices());
+    u(0) = 10.0;
+    heat.setState(u);
 
     polyscope::init();
     auto* psMesh = polyscope::registerSurfaceMesh("Spot", data.positions, data.faces);
     psMesh->addVertexScalarQuantity("Gaussian curvature", gaussian);
     psMesh->addVertexScalarQuantity("Mean curvature", meanCurvature);
     psMesh->addFaceVectorQuantity("Face Normal", faceNormal);
+    psMesh->addVertexScalarQuantity("temperature", heat.state());
+
+    bool flag = false;
+
+    polyscope::state::userCallback = [&]() {
+        if (ImGui::Button("Start")) {
+            flag = true;
+        }
+        if (flag){
+            heat.step();
+            psMesh->addVertexScalarQuantity("temperature", heat.state());
+        }
+        if(ImGui::Button("Reset")){
+            flag=false;
+            heat.setState(u);
+            psMesh->addVertexScalarQuantity("temperature", heat.state());
+        }
+    };
+
     polyscope::show();
 }

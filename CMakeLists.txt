@@ -33,7 +33,8 @@ FetchContent_MakeAvailable(eigen polyscope)
 add_library(egregium src/mesh/surface_mesh.cpp
 src/geometry/geometry.cpp
 src/io/obj.cpp
-src/operators/laplacian.cpp)
+src/operators/laplacian.cpp
+src/algorithms/heat_diffusion.cpp)
 target_include_directories(egregium PUBLIC include)
 target_link_libraries(egregium PUBLIC Eigen3::Eigen)
 # ---- GoogleTest ------------------------------------------------------------
