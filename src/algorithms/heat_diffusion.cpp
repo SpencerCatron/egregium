@@ -5,7 +5,7 @@
 
 namespace egregium {
 
-HeatDiffusion::HeatDiffusion(const Geometry& geom, const HeatParams& params = {}) {
+HeatDiffusion::HeatDiffusion(const Geometry& geom, const HeatParams& params) {
     size_ = geom.mesh().nVertices();
     if (params.diffusivity.size() == 0) {
         diffusivity_ = Eigen::VectorXd::Ones(size_);
@@ -59,11 +59,18 @@ void HeatDiffusion::step() {
                        timeStep_ * coupling_ * ambient_ * M_ * Eigen::VectorXd::Ones(size_));
 }
 
+void HeatDiffusion::step(Eigen::VectorXd& forcing) {
+    timeTotal_ += timeStep_;
+    u_ = solver_.solve(M_ * u_ +
+                       timeStep_ * coupling_ * ambient_ * M_ * Eigen::VectorXd::Ones(size_) +
+                       M_ * forcing);
+}
+
 double HeatDiffusion::elapsedTime() const {
     return timeTotal_;
 }
 
-Eigen::Vector3d HeatDiffusion::state() const {
+Eigen::VectorXd HeatDiffusion::state() const {
     return u_;
 }
 }  // namespace egregium
