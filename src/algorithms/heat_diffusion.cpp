@@ -20,6 +20,12 @@ HeatDiffusion::HeatDiffusion(const Geometry& geom, const HeatParams& params = {}
     coupling_ = params.coupling;
     L_ = cotanLaplacian(geom);
     M_ = massMatrix(geom);
+    A_ = (1.0 + timeStep_ * coupling_) * M_ + timeStep_ * L_;
+
+    solver_.compute(A_);
+    if (solver_.info() != Eigen::Success) {
+        throw std::runtime_error("HeatDiffusion: Factorization failed.");
+    }
 }
 
 void HeatDiffusion::setState(const Eigen::VectorXd& u) {
@@ -33,6 +39,11 @@ void HeatDiffusion::setTimeStep(double timeStep) {
 void HeatDiffusion::setAmbientTemp(double ambient, double coupling) {
     ambient_ = ambient;
     coupling_ = coupling;
+    A_ = (1.0 + timeStep_ * coupling_) * M_ + timeStep_ * L_;
+    solver_.compute(A_);
+    if (solver_.info() != Eigen::Success) {
+        throw std::runtime_error("HeatDiffusion: Factorization failed.");
+    }
 }
 
 void HeatDiffusion::setDiffusivity(Eigen::VectorXd& diffusivity) {
@@ -44,6 +55,8 @@ void HeatDiffusion::setDiffusivity(Eigen::VectorXd& diffusivity) {
 
 void HeatDiffusion::step() {
     timeTotal_ += timeStep_;
+    u_ = solver_.solve(M_ * u_ +
+                       timeStep_ * coupling_ * ambient_ * M_ * Eigen::VectorXd::Ones(size_));
 }
 
 double HeatDiffusion::elapsedTime() const {
