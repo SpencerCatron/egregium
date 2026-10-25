@@ -22,13 +22,14 @@ class Geometry {
     // positions[v] is the position of vertex v.
     // Mesh must outlive Geometry.
     // Throws std::invalid_argument if sizes of mesh and positions are not equal.
-    Geometry(const SurfaceMesh& mesh, std::vector<Eigen::Vector3d> positions);
+    Geometry(const SurfaceMesh& mesh, Eigen::MatrixXd positions);
 
     // Temporary meshes are rejected at compile time, since mesh_ would dangle.
-    Geometry(SurfaceMesh&& mesh, std::vector<Eigen::Vector3d> positions) = delete;
+    Geometry(SurfaceMesh&& mesh, Eigen::MatrixXd positions) = delete;
     const SurfaceMesh& mesh() const;
-    const Eigen::Vector3d& position(int v) const;
-    void setPositions(std::vector<Eigen::Vector3d> newPositions);
+    const Eigen::Vector3d position(int v) const;
+    void setPositions(Eigen::MatrixXd newPositions);
+    Eigen::MatrixXd positionMatrix() const;
     Eigen::Vector3d halfedgeVector(int h) const;
 
     // edges-----------------------------------------------
@@ -74,6 +75,6 @@ class Geometry {
 
  private:
     const SurfaceMesh& mesh_;
-    std::vector<Eigen::Vector3d> positions_;
+    Eigen::MatrixXd positions_;
 };
 }  // namespace egregium

@@ -22,6 +22,15 @@ using test_meshes::Positions;
 
 namespace {
 
+// writeObj takes an n x 3 matrix; the test meshes provide one Vector3d per vertex.
+Eigen::MatrixXd toMatrix(const Positions& positions) {
+    Eigen::MatrixXd P(positions.size(), 3);
+    for (int i = 0; i < static_cast<int>(positions.size()); ++i) {
+        P.row(i) = positions[i].transpose();
+    }
+    return P;
+}
+
 // Gives each test its own temporary OBJ file and deletes it afterwards.
 class ObjTest : public ::testing::Test {
  protected:
@@ -58,28 +67,32 @@ class ObjTest : public ::testing::Test {
 // equality only holds if writeObj prints enough digits.
 TEST_F(ObjTest, RoundTripIsExact) {
     const Faces faces = test_meshes::torus();
-    const Positions positions = test_meshes::torusPositions();
+    const Eigen::MatrixXd positions = toMatrix(test_meshes::torusPositions());
 
     writeObj(path_, faces, positions);
     MeshData data = readObj(path_);
 
     EXPECT_EQ(data.faces, faces);
-    ASSERT_EQ(data.positions.size(), positions.size());
-    for (std::size_t i = 0; i < positions.size(); ++i) {
-        EXPECT_EQ(data.positions[i], positions[i]) << "vertex " << i;
+    ASSERT_EQ(data.positions.rows(), positions.rows());
+    ASSERT_EQ(data.positions.cols(), 3);
+    for (int i = 0; i < positions.rows(); ++i) {
+        const Eigen::Vector3d expected = positions.row(i).transpose();
+        const Eigen::Vector3d actual = data.positions.row(i).transpose();
+        EXPECT_EQ(actual, expected) << "vertex " << i;
     }
 }
 
 // OBJ indices start at 1. A round trip alone would miss a writer and reader that are
 // off by one in the same way, so check the text directly.
 TEST_F(ObjTest, WritesOneBasedIndices) {
-    writeObj(path_, test_meshes::singleTriangle(), test_meshes::singleTrianglePositions());
+    writeObj(path_, test_meshes::singleTriangle(),
+             toMatrix(test_meshes::singleTrianglePositions()));
     EXPECT_EQ(readText(), "v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n");
 }
 
 // A loaded file should be usable to build a mesh and its geometry.
 TEST_F(ObjTest, LoadedMeshBuildsGeometry) {
-    writeObj(path_, test_meshes::octahedron(), test_meshes::octahedronPositions());
+    writeObj(path_, test_meshes::octahedron(), toMatrix(test_meshes::octahedronPositions()));
     MeshData data = readObj(path_);
 
     SurfaceMesh mesh(data.faces);
@@ -107,8 +120,9 @@ TEST_F(ObjTest, ReadsAllFaceEntryForms) {
 
     const Faces expected = {{0, 1, 2}, {0, 2, 3}};
     EXPECT_EQ(data.faces, expected);
-    ASSERT_EQ(data.positions.size(), 4u);
-    EXPECT_EQ(data.positions[2], Eigen::Vector3d(1, 1, 0));
+    ASSERT_EQ(data.positions.rows(), 4);
+    const Eigen::Vector3d p2 = data.positions.row(2).transpose();
+    EXPECT_EQ(p2, Eigen::Vector3d(1, 1, 0));
 }
 
 // Negative indices count back from the last vertex read so far.
@@ -146,9 +160,8 @@ TEST_F(ObjTest, RejectsMissingFile) {
 
 TEST_F(ObjTest, RejectsUnwritablePath) {
     const auto path = path_.parent_path() / "egregium_no_such_dir" / "mesh.obj";
-    EXPECT_THROW(writeObj(path, test_meshes::singleTriangle(),
-                          test_meshes::singleTrianglePositions()),
-                 std::runtime_error);
+    const Eigen::MatrixXd positions = toMatrix(test_meshes::singleTrianglePositions());
+    EXPECT_THROW(writeObj(path, test_meshes::singleTriangle(), positions), std::runtime_error);
 }
 
 TEST_F(ObjTest, RejectsZeroIndex) {

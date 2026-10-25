@@ -72,18 +72,24 @@ MeshData readObj(const std::filesystem::path& path) {
         }
     }
 
-    return MeshData(std::move(faces), std::move(positions));
+    Eigen::MatrixXd V(positions.size(), 3);
+    for (int i = 0; i < static_cast<int>(positions.size()); ++i) {
+        V.row(i) = positions[i].transpose();
+    }
+
+    return MeshData(std::move(faces), std::move(V));
 }
 
 void writeObj(const std::filesystem::path& path, const Faces& faces,
-              const std::vector<Eigen::Vector3d>& positions) {
+              const Eigen::MatrixXd& positions) {
     std::ofstream file(path);
     if (!file) {
         throw std::runtime_error("writeOBJ: cannot open " + path.string());
     }
 
     file.precision(std::numeric_limits<double>::max_digits10);
-    for (const auto& p : positions) {
+    for (int i = 0; i< positions.rows(); ++i) {
+        const Eigen::Vector3d p= positions.row(i).transpose();
         file << "v " << p.x() << ' ' << p.y() << ' ' << p.z() << '\n';
     }
     for (const auto& f : faces) {

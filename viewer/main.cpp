@@ -4,6 +4,7 @@
 #include <egregium/mesh/surface_mesh.h>
 #include <polyscope/polyscope.h>
 #include <polyscope/surface_mesh.h>
+#include<egregium/algorithms/mean_curvature_flow.h>
 
 #include <filesystem>
 #include <vector>
@@ -26,7 +27,13 @@ int main() {
     for (int f = 0; f < mesh.nFaces(); ++f) {
         faceNormal[f] = geom.faceNormal(f);
     }
+
+
     egregium::HeatDiffusion heat(geom);
+    egregium::MeanCurvatureFlow flow(geom.mesh(), geom.positionMatrix());
+
+
+
     Eigen::VectorXd u = Eigen::VectorXd::Zero(mesh.nVertices());
     u(0) = 10.0;
     heat.setState(u);
@@ -38,20 +45,34 @@ int main() {
     psMesh->addFaceVectorQuantity("Face Normal", faceNormal);
     psMesh->addVertexScalarQuantity("temperature", heat.state());
 
-    bool flag = false;
+    bool flag1 = false;
+    bool flag2 = false;
 
     polyscope::state::userCallback = [&]() {
-        if (ImGui::Button("Start")) {
-            flag = true;
+        ImGui::SeparatorText("Heat demo");
+        if (ImGui::Button("Start##heat")) {
+            flag1 = true;
         }
-        if (flag){
+        if (flag1){
             heat.step();
             psMesh->addVertexScalarQuantity("temperature", heat.state());
         }
-        if(ImGui::Button("Reset")){
-            flag=false;
+        if(ImGui::Button("Reset##heat")){
+            flag1=false;
             heat.setState(u);
             psMesh->addVertexScalarQuantity("temperature", heat.state());
+        }
+        ImGui::SeparatorText("Mean curvature flow demo");
+        if (ImGui::Button("Start##mcf")) {
+            flag2 = true;
+        }
+        if(flag2){
+            flow.step();
+            psMesh->updateVertexPositions(flow.state());
+        }
+        if(ImGui::Button("Reset##mcf")){
+            flag2=false;
+            psMesh->updateVertexPositions(geom.positionMatrix());
         }
     };
 

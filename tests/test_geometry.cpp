@@ -19,9 +19,18 @@ namespace {
 
 constexpr double kTol = 1e-12;
 
+// Geometry takes an n x 3 matrix; the test meshes provide one Vector3d per vertex.
+Eigen::MatrixXd toMatrix(const Positions& positions) {
+    Eigen::MatrixXd P(positions.size(), 3);
+    for (int i = 0; i < static_cast<int>(positions.size()); ++i) {
+        P.row(i) = positions[i].transpose();
+    }
+    return P;
+}
+
 // A temporary mesh must not bind to Geometry, but a named one must.
-static_assert(!std::is_constructible_v<Geometry, SurfaceMesh&&, Positions>);
-static_assert(std::is_constructible_v<Geometry, const SurfaceMesh&, Positions>);
+static_assert(!std::is_constructible_v<Geometry, SurfaceMesh&&, Eigen::MatrixXd>);
+static_assert(std::is_constructible_v<Geometry, const SurfaceMesh&, Eigen::MatrixXd>);
 
 }  // namespace
 
@@ -43,13 +52,13 @@ class GeometryTest : public ::testing::TestWithParam<GeometryCase> {};
 TEST_P(GeometryTest, TotalArea) {
     const GeometryCase& c = GetParam();
     SurfaceMesh mesh(c.faces);
-    Geometry geom(mesh, c.positions);
+    Geometry geom(mesh, toMatrix(c.positions));
     EXPECT_NEAR(geom.totalArea(), c.area, kTol);
 }
 
 TEST_P(GeometryTest, DualAreasSumToTotalArea) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     double sum = 0.0;
     for (int v = 0; v < mesh.nVertices(); ++v) {
         sum += geom.vertexDualArea(v);
@@ -59,7 +68,7 @@ TEST_P(GeometryTest, DualAreasSumToTotalArea) {
 
 TEST_P(GeometryTest, EdgeLengthIsDistanceBetweenEndpoints) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     for (int e = 0; e < mesh.nEdges(); ++e) {
         const int h = mesh.edgeHalfedge(e);
         const double expected =
@@ -70,7 +79,7 @@ TEST_P(GeometryTest, EdgeLengthIsDistanceBetweenEndpoints) {
 
 TEST_P(GeometryTest, CornerAnglesOfFaceSumToPi) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     for (int f = 0; f < mesh.nFaces(); ++f) {
         const int h = mesh.faceHalfedge(f);
         const double sum = geom.cornerAngle(h) + geom.cornerAngle(mesh.next(h)) +
@@ -81,7 +90,7 @@ TEST_P(GeometryTest, CornerAnglesOfFaceSumToPi) {
 
 TEST_P(GeometryTest, CotanMatchesCornerAngle) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     for (int h = 0; h < mesh.nHalfedges(); ++h) {
         if (mesh.isBoundaryHalfedge(h)) {
             EXPECT_EQ(geom.cornerAngle(h), 0.0) << "half-edge " << h;
@@ -96,7 +105,7 @@ TEST_P(GeometryTest, CotanMatchesCornerAngle) {
 
 TEST_P(GeometryTest, FaceNormalsAreUnitAndPerpendicular) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     for (int f = 0; f < mesh.nFaces(); ++f) {
         const Eigen::Vector3d n = geom.faceNormal(f);
         const int h = mesh.faceHalfedge(f);
@@ -108,7 +117,7 @@ TEST_P(GeometryTest, FaceNormalsAreUnitAndPerpendicular) {
 
 TEST_P(GeometryTest, VertexNormalsAreUnit) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     for (int v = 0; v < mesh.nVertices(); ++v) {
         EXPECT_NEAR(geom.vertexNormal(v).norm(), 1.0, kTol) << "vertex " << v;
     }
@@ -118,7 +127,7 @@ TEST_P(GeometryTest, VertexNormalsAreUnit) {
 TEST_P(GeometryTest, GaussBonnet) {
     const GeometryCase& c = GetParam();
     SurfaceMesh mesh(c.faces);
-    Geometry geom(mesh, c.positions);
+    Geometry geom(mesh, toMatrix(c.positions));
     double sum = 0.0;
     for (int v = 0; v < mesh.nVertices(); ++v) {
         sum += geom.angleDefect(v)+geom.boundaryTurningAngle(v);
@@ -130,15 +139,15 @@ TEST_P(GeometryTest, GaussBonnet) {
 TEST_P(GeometryTest, ScalingBehavior) {
     const GeometryCase& c = GetParam();
     SurfaceMesh mesh(c.faces);
-    Geometry geom(mesh, c.positions);
-    Geometry scaled(mesh, c.positions);
+    Geometry geom(mesh, toMatrix(c.positions));
+    Geometry scaled(mesh, toMatrix(c.positions));
 
     constexpr double kScale = 2.5;
     Positions scaledPositions = c.positions;
     for (auto& p : scaledPositions) {
         p *= kScale;
     }
-    scaled.setPositions(scaledPositions);
+    scaled.setPositions(toMatrix(scaledPositions));
 
     EXPECT_NEAR(scaled.totalArea(), kScale * kScale * geom.totalArea(), 1e-10);
     EXPECT_NEAR(scaled.meanEdgeLength(), kScale * geom.meanEdgeLength(), 1e-10);
@@ -166,7 +175,7 @@ INSTANTIATE_TEST_SUITE_P(
 // The torus has no simple closed-form area, so it only gets the topological check.
 TEST(GeometryTorus, GaussBonnet) {
     SurfaceMesh mesh(test_meshes::torus());
-    Geometry geom(mesh, test_meshes::torusPositions());
+    Geometry geom(mesh, toMatrix(test_meshes::torusPositions()));
     double sum = 0.0;
     for (int v = 0; v < mesh.nVertices(); ++v) {
         sum += geom.angleDefect(v);
@@ -179,7 +188,7 @@ TEST(GeometryTorus, GaussBonnet) {
 // Halfedges 0, 1, 2 run 0->1, 1->2, 2->0, and edge i is the edge of halfedge i.
 TEST(GeometryRightTriangle, KnownValues) {
     SurfaceMesh mesh(test_meshes::singleTriangle());
-    Geometry geom(mesh, test_meshes::singleTrianglePositions());
+    Geometry geom(mesh, toMatrix(test_meshes::singleTrianglePositions()));
 
     EXPECT_NEAR(geom.faceArea(0), 0.5, kTol);
     EXPECT_TRUE(geom.faceNormal(0).isApprox(Eigen::Vector3d::UnitZ()));
@@ -211,7 +220,7 @@ TEST(GeometryRightTriangle, KnownValues) {
 // Both angles opposite the diagonal are right angles, so its cotan weight is 0.
 TEST(GeometrySquare, DiagonalCotanWeightIsZero) {
     SurfaceMesh mesh(test_meshes::square());
-    Geometry geom(mesh, test_meshes::squarePositions());
+    Geometry geom(mesh, toMatrix(test_meshes::squarePositions()));
     int interiorEdges = 0;
     for (int e = 0; e < mesh.nEdges(); ++e) {
         const int h = mesh.edgeHalfedge(e);
@@ -227,7 +236,7 @@ TEST(GeometrySquare, DiagonalCotanWeightIsZero) {
 // Every face is equilateral with side sqrt(2), and four faces meet at each vertex.
 TEST(GeometryOctahedron, KnownValues) {
     SurfaceMesh mesh(test_meshes::octahedron());
-    Geometry geom(mesh, test_meshes::octahedronPositions());
+    Geometry geom(mesh, toMatrix(test_meshes::octahedronPositions()));
 
     for (int e = 0; e < mesh.nEdges(); ++e) {
         EXPECT_NEAR(geom.edgeLength(e), std::sqrt(2.0), kTol) << "edge " << e;
@@ -253,7 +262,7 @@ TEST(GeometryConvex, FaceNormalsPointOutward) {
     };
     for (const auto& [faces, positions] : cases) {
         SurfaceMesh mesh(faces);
-        Geometry geom(mesh, positions);
+        Geometry geom(mesh, toMatrix(positions));
         for (int f = 0; f < mesh.nFaces(); ++f) {
             const int h = mesh.faceHalfedge(f);
             const Eigen::Vector3d centroid =
@@ -267,7 +276,7 @@ TEST(GeometryConvex, FaceNormalsPointOutward) {
 
 TEST(GeometryFan, FlatCenterHasNoCurvature) {
     SurfaceMesh mesh(test_meshes::fan());
-    Geometry geom(mesh, test_meshes::fanPositions());
+    Geometry geom(mesh, toMatrix(test_meshes::fanPositions()));
     EXPECT_NEAR(geom.angleSum(4), 2.0 * kPi, kTol);
     EXPECT_NEAR(geom.angleDefect(4), 0.0, kTol);
     EXPECT_TRUE(geom.vertexNormal(4).isApprox(Eigen::Vector3d::UnitZ()));
@@ -276,7 +285,7 @@ TEST(GeometryFan, FlatCenterHasNoCurvature) {
 // Lifting the center makes a pyramid. Each apex angle has cosine 1/3 at height 1.
 TEST(GeometryFan, PyramidApexHasPositiveCurvature) {
     SurfaceMesh mesh(test_meshes::fan());
-    Geometry geom(mesh, test_meshes::fanPositions(1.0));
+    Geometry geom(mesh, toMatrix(test_meshes::fanPositions(1.0)));
     EXPECT_NEAR(geom.angleDefect(4), 2.0 * kPi - 4.0 * std::acos(1.0 / 3.0), kTol);
     EXPECT_GT(geom.angleDefect(4), 0.0);
     EXPECT_TRUE(geom.vertexNormal(4).isApprox(Eigen::Vector3d::UnitZ()));
@@ -287,26 +296,26 @@ TEST(GeometryFan, PyramidApexHasPositiveCurvature) {
 TEST(GeometryInvalid, RejectsTooFewPositions) {
     SurfaceMesh mesh(test_meshes::singleTriangle());
     Positions positions = {{0, 0, 0}, {1, 0, 0}};
-    EXPECT_THROW({ Geometry geom(mesh, positions); }, std::invalid_argument);
+    EXPECT_THROW({ Geometry geom(mesh, toMatrix(positions)); }, std::invalid_argument);
 }
 
 TEST(GeometryInvalid, RejectsTooManyPositions) {
     SurfaceMesh mesh(test_meshes::singleTriangle());
     Positions positions = test_meshes::singleTrianglePositions();
     positions.emplace_back(1, 1, 1);
-    EXPECT_THROW({ Geometry geom(mesh, positions); }, std::invalid_argument);
+    EXPECT_THROW({ Geometry geom(mesh, toMatrix(positions)); }, std::invalid_argument);
 }
 
 TEST(GeometryInvalid, SetPositionsRejectsWrongSize) {
     SurfaceMesh mesh(test_meshes::singleTriangle());
-    Geometry geom(mesh, test_meshes::singleTrianglePositions());
-    EXPECT_THROW(geom.setPositions({{0, 0, 0}}), std::invalid_argument);
+    Geometry geom(mesh, toMatrix(test_meshes::singleTrianglePositions()));
+    EXPECT_THROW(geom.setPositions(toMatrix({{0, 0, 0}})), std::invalid_argument);
 }
 
 TEST(GeometryUpdate, SetPositionsChangesGeometry) {
     SurfaceMesh mesh(test_meshes::singleTriangle());
-    Geometry geom(mesh, test_meshes::singleTrianglePositions());
-    geom.setPositions({{0, 0, 0}, {2, 0, 0}, {0, 2, 0}});
+    Geometry geom(mesh, toMatrix(test_meshes::singleTrianglePositions()));
+    geom.setPositions(toMatrix({{0, 0, 0}, {2, 0, 0}, {0, 2, 0}}));
     EXPECT_NEAR(geom.totalArea(), 2.0, kTol);
     EXPECT_TRUE(geom.position(1).isApprox(Eigen::Vector3d(2, 0, 0)));
 }

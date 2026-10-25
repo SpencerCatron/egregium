@@ -46,7 +46,7 @@ class OperatorTest : public ::testing::TestWithParam<OperatorCase> {};
 
 TEST_P(OperatorTest, LaplacianHasRightSize) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     const Eigen::SparseMatrix<double> L = egregium::cotanLaplacian(geom);
     EXPECT_EQ(L.rows(), mesh.nVertices());
     EXPECT_EQ(L.cols(), mesh.nVertices());
@@ -54,7 +54,7 @@ TEST_P(OperatorTest, LaplacianHasRightSize) {
 
 TEST_P(OperatorTest, LaplacianIsSymmetric) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     const Eigen::SparseMatrix<double> L = egregium::cotanLaplacian(geom);
     const Eigen::SparseMatrix<double> Lt = L.transpose();
     EXPECT_NEAR((L - Lt).norm(), 0.0, kTol);
@@ -63,7 +63,7 @@ TEST_P(OperatorTest, LaplacianIsSymmetric) {
 // Each edge ij contributes -w_ij off the diagonal, so L(i,j) is minus the cotan weight.
 TEST_P(OperatorTest, OffDiagonalEntriesAreNegatedCotanWeights) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     const Eigen::SparseMatrix<double> L = egregium::cotanLaplacian(geom);
     for (int e = 0; e < mesh.nEdges(); ++e) {
         const int h = mesh.edgeHalfedge(e);
@@ -76,7 +76,7 @@ TEST_P(OperatorTest, OffDiagonalEntriesAreNegatedCotanWeights) {
 // Constants are in the null space: every row sums to zero.
 TEST_P(OperatorTest, RowsSumToZero) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     const Eigen::SparseMatrix<double> L = egregium::cotanLaplacian(geom);
     const Eigen::VectorXd ones = Eigen::VectorXd::Ones(mesh.nVertices());
     EXPECT_NEAR((L * ones).norm(), 0.0, kTol);
@@ -85,7 +85,7 @@ TEST_P(OperatorTest, RowsSumToZero) {
 // The header documents L as positive semidefinite: x^T L x >= 0 for every x.
 TEST_P(OperatorTest, LaplacianIsPositiveSemidefinite) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     const Eigen::SparseMatrix<double> L = egregium::cotanLaplacian(geom);
 
     std::mt19937 rng(42);
@@ -101,7 +101,7 @@ TEST_P(OperatorTest, LaplacianIsPositiveSemidefinite) {
 
 TEST_P(OperatorTest, MassMatrixIsDiagonalOfDualAreas) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     const Eigen::SparseMatrix<double> M = egregium::massMatrix(geom);
 
     ASSERT_EQ(M.rows(), mesh.nVertices());
@@ -114,7 +114,7 @@ TEST_P(OperatorTest, MassMatrixIsDiagonalOfDualAreas) {
 
 TEST_P(OperatorTest, MassMatrixSumsToTotalArea) {
     SurfaceMesh mesh(GetParam().faces);
-    Geometry geom(mesh, GetParam().positions);
+    Geometry geom(mesh, toMatrix(GetParam().positions));
     const Eigen::SparseMatrix<double> M = egregium::massMatrix(geom);
     EXPECT_NEAR(M.sum(), geom.totalArea(), kTol);
 }
@@ -140,7 +140,7 @@ INSTANTIATE_TEST_SUITE_P(
 // boundary edge has one 45 degree angle opposite it, so its weight is cot(45)/2 = 1/2.
 TEST(LaplacianSquare, KnownEntries) {
     SurfaceMesh mesh(test_meshes::square());
-    Geometry geom(mesh, test_meshes::squarePositions());
+    Geometry geom(mesh, toMatrix(test_meshes::squarePositions()));
     const Eigen::SparseMatrix<double> L = egregium::cotanLaplacian(geom);
 
     EXPECT_NEAR(L.coeff(0, 2), 0.0, kTol);
@@ -155,7 +155,7 @@ TEST(LaplacianSquare, KnownEntries) {
 // vertex, L applied to x, y or any linear combination is zero.
 TEST(LaplacianFlat, LinearFunctionsAreHarmonicAtInteriorVertices) {
     SurfaceMesh mesh(test_meshes::fan());
-    Geometry geom(mesh, test_meshes::fanPositions());
+    Geometry geom(mesh, toMatrix(test_meshes::fanPositions()));
     const Eigen::SparseMatrix<double> L = egregium::cotanLaplacian(geom);
     const Eigen::MatrixXd LP = L * toMatrix(test_meshes::fanPositions());
 
@@ -169,7 +169,7 @@ TEST(LaplacianFlat, LinearFunctionsAreHarmonicAtInteriorVertices) {
 // curvature from the dihedral one, so only the direction is compared.
 TEST(LaplacianOctahedron, PositionsGiveOutwardNormals) {
     SurfaceMesh mesh(test_meshes::octahedron());
-    Geometry geom(mesh, test_meshes::octahedronPositions());
+    Geometry geom(mesh, toMatrix(test_meshes::octahedronPositions()));
     const Eigen::SparseMatrix<double> L = egregium::cotanLaplacian(geom);
     const Eigen::MatrixXd LP = L * toMatrix(test_meshes::octahedronPositions());
 
@@ -186,7 +186,7 @@ TEST(LaplacianOctahedron, PositionsGiveOutwardNormals) {
 // (L P)_v = 4 * (1/sqrt(3)) * p_v.
 TEST(LaplacianOctahedron, KnownMeanCurvatureNormal) {
     SurfaceMesh mesh(test_meshes::octahedron());
-    Geometry geom(mesh, test_meshes::octahedronPositions());
+    Geometry geom(mesh, toMatrix(test_meshes::octahedronPositions()));
     const Eigen::SparseMatrix<double> L = egregium::cotanLaplacian(geom);
     const Eigen::MatrixXd LP = L * toMatrix(test_meshes::octahedronPositions());
 

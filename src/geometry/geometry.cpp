@@ -5,9 +5,9 @@
 #include <utility>
 
 namespace egregium {
-Geometry::Geometry(const SurfaceMesh& mesh, std::vector<Eigen::Vector3d> positions)
+Geometry::Geometry(const SurfaceMesh& mesh, Eigen::MatrixXd positions)
     : mesh_(mesh), positions_(std::move(positions)) {
-    if (static_cast<int>(positions_.size()) != mesh_.nVertices()) {
+    if (static_cast<int>(positions_.rows()) != mesh_.nVertices()) {
         throw std::invalid_argument(
             "Geometry: Number of positions does not match number of vertices");
     }
@@ -17,16 +17,20 @@ const SurfaceMesh& Geometry::mesh() const {
     return mesh_;
 }
 
-const Eigen::Vector3d& Geometry::position(int v) const {
-    return positions_[v];
+const Eigen::Vector3d Geometry::position(int v) const {
+    return positions_.row(v).transpose();
 }
 
-void Geometry::setPositions(std::vector<Eigen::Vector3d> newPositions) {
-    if (static_cast<int>(newPositions.size()) != mesh_.nVertices()) {
+void Geometry::setPositions(Eigen::MatrixXd newPositions) {
+    if (static_cast<int>(newPositions.rows()) != mesh_.nVertices()) {
         throw std::invalid_argument(
             "Geometry: Number of positions does not match number of vertices");
     }
     positions_ = std::move(newPositions);
+}
+
+Eigen::MatrixXd Geometry::positionMatrix() const{
+    return positions_;
 }
 
 Eigen::Vector3d Geometry::halfedgeVector(int h) const {
